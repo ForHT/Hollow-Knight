@@ -1,22 +1,22 @@
 """
-ÓÎÏ·Ö÷Èë¿Ú
+æ¸¸æˆä¸»å…¥å£
 """
 from core.engine import GameEngine
 
 def main():
-    # ´´½¨ÓÎÏ·ÒıÇæÊµÀı
+    # åˆ›å»ºæ¸¸æˆå¼•æ“å®ä¾‹
     engine = GameEngine()
     
     try:
-        # ³õÊ¼»¯ÓÎÏ·
+        # åˆå§‹åŒ–æ¸¸æˆ
         engine.init()
         
-        # ÔËĞĞÓÎÏ·
+        # è¿è¡Œæ¸¸æˆ
         engine.run()
     except Exception as e:
-        print(f"ÓÎÏ··¢Éú´íÎó: {e}")
+        print(f"æ¸¸æˆå‘ç”Ÿé”™è¯¯: {e}")
     finally:
-        # È·±£ÕıÈ·ÍË³ö
+        # ç¡®ä¿æ­£ç¡®é€€å‡º
         engine.quit()
 
 if __name__ == "__main__":

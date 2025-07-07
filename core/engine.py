@@ -1,6 +1,6 @@
 """
-ÓÎÏ·ÒıÇæÖ÷Àà
-¸ºÔğĞ­µ÷¸÷¸öÏµÍ³µÄÔËĞĞ
+æ¸¸æˆå¼•æ“ä¸»ç±»
+è´Ÿè´£åè°ƒå„ä¸ªç³»ç»Ÿçš„è¿è¡Œ
 """
 import pygame
 from typing import Dict, Optional
@@ -8,7 +8,7 @@ from game.interfaces import ISceneManager, IResourceManager, EventManager
 
 class GameEngine:
     def __init__(self):
-        """³õÊ¼»¯ÓÎÏ·ÒıÇæ"""
+        """åˆå§‹åŒ–æ¸¸æˆå¼•æ“"""
         pygame.init()
         self.running = False
         self.screen: Optional[pygame.Surface] = None
@@ -17,38 +17,38 @@ class GameEngine:
         self.resource_manager: Optional[IResourceManager] = None
         
     def init(self, screen_width: int = 1440, screen_height: int = 900) -> None:
-        """³õÊ¼»¯ÓÎÏ·´°¿ÚºÍÏµÍ³"""
+        """åˆå§‹åŒ–æ¸¸æˆçª—å£å’Œç³»ç»Ÿ"""
         self.screen = pygame.display.set_mode((screen_width, screen_height))
         pygame.display.set_caption("Hollow Knight Clone")
-        # TODO: ³õÊ¼»¯³¡¾°¹ÜÀíÆ÷
-        # TODO: ³õÊ¼»¯×ÊÔ´¹ÜÀíÆ÷
+        # TODO: åˆå§‹åŒ–åœºæ™¯ç®¡ç†å™¨
+        # TODO: åˆå§‹åŒ–èµ„æºç®¡ç†å™¨
         
     def run(self) -> None:
-        """ÔËĞĞÓÎÏ·Ö÷Ñ­»·"""
+        """è¿è¡Œæ¸¸æˆä¸»å¾ªç¯"""
         if not self.screen:
             raise RuntimeError("Game engine not initialized. Call init() first.")
             
         self.running = True
-        screen = self.screen  # ÀàĞÍ¼ì²éÆ÷»áÈÏÎªÕâ¸ö±äÁ¿Ò»¶¨ÊÇpygame.Surface
+        screen = self.screen  # ç±»å‹æ£€æŸ¥å™¨ä¼šè®¤ä¸ºè¿™ä¸ªå˜é‡ä¸€å®šæ˜¯pygame.Surface
         
         while self.running:
-            # ´¦ÀíÊÂ¼ş
+            # å¤„ç†äº‹ä»¶
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
                     
-            # ¸üĞÂÓÎÏ·×´Ì¬
-            dt = self.clock.tick(60) / 1000.0  # ×ª»»ÎªÃë
+            # æ›´æ–°æ¸¸æˆçŠ¶æ€
+            dt = self.clock.tick(60) / 1000.0  # è½¬æ¢ä¸ºç§’
             if self.scene_manager:
                 self.scene_manager.update(dt)
             
-            # äÖÈ¾
-            screen.fill((0, 0, 0))  # Çå¿ÕÆÁÄ»
+            # æ¸²æŸ“
+            screen.fill((0, 0, 0))  # æ¸…ç©ºå±å¹•
             if self.scene_manager:
-                self.scene_manager.draw(screen)  # Ê¹ÓÃÒÑ¾­ÀàĞÍ¼ì²é¹ıµÄscreen±äÁ¿
+                self.scene_manager.draw(screen)  # ä½¿ç”¨å·²ç»ç±»å‹æ£€æŸ¥è¿‡çš„screenå˜é‡
             pygame.display.flip()
             
     def quit(self) -> None:
-        """ÍË³öÓÎÏ·"""
+        """é€€å‡ºæ¸¸æˆ"""
         self.running = False
         pygame.quit() 
