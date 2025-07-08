@@ -22,7 +22,7 @@ class GameEngine:
         self.running = False
         self.screen: Optional[pygame.Surface] = None
         self.clock = pygame.time.Clock()
-        # ÏµÍ³¹ÜÀíÆ÷
+        # ç³»ç»Ÿç®¡ç†å™¨
         self.scene_manager: Optional[ISceneManager] = None
         self.resource_manager: Optional[IResourceManager] = None
         self.physics_system: Optional[IPhysicsSystem] = None
@@ -32,12 +32,12 @@ class GameEngine:
         self.ui_manager: Optional[IUIManager] = None
         
     def init(self, screen_width: int = 1440, screen_height: int = 900) -> None:
-        """³õÊ¼»¯ÓÎÏ·´°¿ÚºÍÏµÍ³"""
-        # ³õÊ¼»¯ÏÔÊ¾
+        """åˆå§‹åŒ–æ¸¸æˆçª—å£å’Œç³»ç»Ÿ"""
+        # åˆå§‹åŒ–æ˜¾ç¤º
         self.screen = pygame.display.set_mode((screen_width, screen_height))
         pygame.display.set_caption("Hollow Knight Clone")
         
-        # TODO: ³õÊ¼»¯¸÷¸öÏµÍ³
+        # TODO: åˆå§‹åŒ–å„ä¸ªç³»ç»Ÿ
         # self.scene_manager = SceneManager()
         # self.resource_manager = ResourceManager()
         # self.physics_system = PhysicsSystem()
@@ -55,25 +55,25 @@ class GameEngine:
         screen = self.screen  # ç±»å‹æ£€æŸ¥å™¨ä¼šè®¤ä¸ºè¿™ä¸ªå˜é‡ä¸€å®šæ˜¯pygame.Surface
         
         while self.running:
-            # ´¦ÀíÊÂ¼ş
+            # å¤„ç†äº‹ä»¶
             events = pygame.event.get()
             for event in events:
                 if event.type == pygame.QUIT:
                     self.running = False
                     
-                # UIÊÂ¼ş´¦Àí
+                # UIäº‹ä»¶å¤„ç†
                 if self.ui_manager:
                     if self.ui_manager.handle_input(event):
-                        continue  # UIÏûºÄÁË´ËÊÂ¼ş
+                        continue  # UIæ¶ˆè€—äº†æ­¤äº‹ä»¶
             
-            # ÊäÈë´¦Àí
+            # è¾“å…¥å¤„ç†
             if self.input_handler:
                 self.input_handler.handle_input(events)
             
-            # ¸üĞÂÓÎÏ·×´Ì¬
-            dt = self.clock.tick(60) / 1000.0  # ×ª»»ÎªÃë
+            # æ›´æ–°æ¸¸æˆçŠ¶æ€
+            dt = self.clock.tick(60) / 1000.0  # è½¬æ¢ä¸ºç§’
             
-            # °´Ë³Ğò¸üĞÂ¸÷¸öÏµÍ³
+            # æŒ‰é¡ºåºæ›´æ–°å„ä¸ªç³»ç»Ÿ
             if self.physics_system:
                 self.physics_system.update(dt)
             if self.animation_system:
@@ -83,12 +83,12 @@ class GameEngine:
             if self.scene_manager:
                 self.scene_manager.update(dt)
             if self.ui_manager:
-                self.ui_manager.update({})  # TODO: ´«ÈëÊµ¼ÊµÄÓÎÏ·×´Ì¬
+                self.ui_manager.update({})  # TODO: ä¼ å…¥å®é™…çš„æ¸¸æˆçŠ¶æ€
             
-            # äÖÈ¾
-            screen.fill((0, 0, 0))  # Çå¿ÕÆÁÄ»
+            # æ¸²æŸ“
+            screen.fill((0, 0, 0))  # æ¸…ç©ºå±å¹•
             
-            # °´Ë³ĞòäÖÈ¾¸÷¸ö²ã
+            # æŒ‰é¡ºåºæ¸²æŸ“å„ä¸ªå±‚
             if self.scene_manager:
                 self.scene_manager.draw(screen)
             if self.ui_manager:

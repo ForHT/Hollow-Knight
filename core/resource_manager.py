@@ -4,40 +4,40 @@ from typing import Dict, Optional
 
 class ResourceManager:
     def __init__(self):
-        """ЁУй╪╩╞вйт╢╧эюМфВ"""
-        # тзуБюОЁУй╪╩╞дЦ╣двйт╢╩╨╢Фвж╣Д
+        """Е┬²Е╖▀Е▄√Х╣└Ф╨░Г╝║Г░├Е≥╗"""
+        # Е°╗Х©≥И┤▄Е┬²Е╖▀Е▄√Д╫═Г └Х╣└Ф╨░Г╪⌠Е╜≤Е╜≈Е┘╦
         pass
 
     def load_image(self, path: str) -> Optional[pygame.Surface]:
-        """╪стьм╪ф╛вйт╢
+        """Е┼═Х╫╫Е⌡╬Г┴┤Х╣└Ф╨░
         
         Args:
-            path: м╪ф╛нд╪Чб╥╬╤
+            path: Е⌡╬Г┴┤Ф√┤Д╩╤Х╥╞Е╬└
             
         Returns:
-            Optional[pygame.Surface]: ╪сть╣дм╪ф╛surfaceё╛хГ╧Ш╪стьй╖╟этР╥╣╩ьNone
+            Optional[pygame.Surface]: Е┼═Х╫╫Г └Е⌡╬Г┴┤surfaceО╪▄Е╕┌Ф·°Е┼═Х╫╫Е╓╠Х╢╔Е┬≥Х©■Е⌡·None
         """
         pass
 
     def preload_resources(self, resource_list: list[str]) -> None:
-        """т╓╪стьр╩вИвйт╢
+        """И╒└Е┼═Х╫╫Д╦─Г╩└Х╣└Ф╨░
         
         Args:
-            resource_list: пХр╙т╓╪сть╣двйт╢б╥╬╤ап╠М
+            resource_list: И°─Х╕│И╒└Е┼═Х╫╫Г └Х╣└Ф╨░Х╥╞Е╬└Е┬≈Х║╗
         """
         pass
 
     def clear_cache(self) -> None:
-        """гЕЁЩкЫсп╩╨╢Ф╣двйт╢"""
+        """Ф╦┘И≥╓Ф┴─Ф°┴Г╪⌠Е╜≤Г └Х╣└Ф╨░"""
         pass
 
     def get_resource(self, path: str) -> Optional[pygame.Surface]:
-        """╩Ях║ря╪сть╣двйт╢
+        """Х▌╥Е▐√Е╥╡Е┼═Х╫╫Г └Х╣└Ф╨░
         
         Args:
-            path: вйт╢б╥╬╤
+            path: Х╣└Ф╨░Х╥╞Е╬└
             
         Returns:
-            Optional[pygame.Surface]: вйт╢╤тоСё╛хГ╧Ш╡╩╢ФтзтР╥╣╩ьNone
+            Optional[pygame.Surface]: Х╣└Ф╨░Е╞╧Х╠║О╪▄Е╕┌Ф·°Д╦█Е╜≤Е°╗Е┬≥Х©■Е⌡·None
         """
         pass 
