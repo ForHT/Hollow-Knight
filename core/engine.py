@@ -1,6 +1,6 @@
 """
-游戏引擎主类
-负责协调各个系统的运行
+娓告垙寮曟搸涓荤被
+璐熻矗鍗忚皟鍚勪釜绯荤粺鐨勮繍琛�
 """
 import pygame
 from typing import Dict, Optional
@@ -17,12 +17,12 @@ from game.interfaces import (
 
 class GameEngine:
     def __init__(self):
-        """初始化游戏引擎"""
+        """鍒濆鍖栨父鎴忓紩鎿�"""
         pygame.init()
         self.running = False
         self.screen: Optional[pygame.Surface] = None
         self.clock = pygame.time.Clock()
-        # ϵͳ������
+        # 系统管理器
         self.scene_manager: Optional[ISceneManager] = None
         self.resource_manager: Optional[IResourceManager] = None
         self.physics_system: Optional[IPhysicsSystem] = None
@@ -32,12 +32,12 @@ class GameEngine:
         self.ui_manager: Optional[IUIManager] = None
         
     def init(self, screen_width: int = 1440, screen_height: int = 900) -> None:
-        """��ʼ����Ϸ���ں�ϵͳ"""
-        # ��ʼ����ʾ
+        """初始化游戏窗口和系统"""
+        # 初始化显示
         self.screen = pygame.display.set_mode((screen_width, screen_height))
         pygame.display.set_caption("Hollow Knight Clone")
         
-        # TODO: ��ʼ������ϵͳ
+        # TODO: 初始化各个系统
         # self.scene_manager = SceneManager()
         # self.resource_manager = ResourceManager()
         # self.physics_system = PhysicsSystem()
@@ -47,33 +47,33 @@ class GameEngine:
         # self.ui_manager = UIManager()
         
     def run(self) -> None:
-        """运行游戏主循环"""
+        """杩愯娓告垙涓诲惊鐜�"""
         if not self.screen:
             raise RuntimeError("Game engine not initialized. Call init() first.")
             
         self.running = True
-        screen = self.screen  # 类型检查器会认为这个变量一定是pygame.Surface
+        screen = self.screen  # 绫诲瀷妫€鏌ュ櫒浼氳涓鸿繖涓彉閲忎竴瀹氭槸pygame.Surface
         
         while self.running:
-            # �����¼�
+            # 处理事件
             events = pygame.event.get()
             for event in events:
                 if event.type == pygame.QUIT:
                     self.running = False
                     
-                # UI�¼�����
+                # UI事件处理
                 if self.ui_manager:
                     if self.ui_manager.handle_input(event):
-                        continue  # UI�����˴��¼�
+                        continue  # UI消耗了此事件
             
-            # ���봦��
+            # 输入处理
             if self.input_handler:
                 self.input_handler.handle_input(events)
             
-            # ������Ϸ״̬
-            dt = self.clock.tick(60) / 1000.0  # ת��Ϊ��
+            # 更新游戏状态
+            dt = self.clock.tick(60) / 1000.0  # 转换为秒
             
-            # ��˳����¸���ϵͳ
+            # 按顺序更新各个系统
             if self.physics_system:
                 self.physics_system.update(dt)
             if self.animation_system:
@@ -83,12 +83,12 @@ class GameEngine:
             if self.scene_manager:
                 self.scene_manager.update(dt)
             if self.ui_manager:
-                self.ui_manager.update({})  # TODO: ����ʵ�ʵ���Ϸ״̬
+                self.ui_manager.update({})  # TODO: 传入实际的游戏状态
             
-            # ��Ⱦ
-            screen.fill((0, 0, 0))  # �����Ļ
+            # 渲染
+            screen.fill((0, 0, 0))  # 清空屏幕
             
-            # ��˳����Ⱦ������
+            # 按顺序渲染各个层
             if self.scene_manager:
                 self.scene_manager.draw(screen)
             if self.ui_manager:
@@ -97,6 +97,6 @@ class GameEngine:
             pygame.display.flip()
             
     def quit(self) -> None:
-        """退出游戏"""
+        """閫€鍑烘父鎴�"""
         self.running = False
         pygame.quit() 
