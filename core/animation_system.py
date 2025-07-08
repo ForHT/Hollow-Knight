@@ -1,6 +1,6 @@
 
 # 动画系统实现
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Callable
 import pygame
 from dataclasses import dataclass
 
@@ -14,6 +14,7 @@ class AnimationState:
     current_frame: int = 0            # 当前帧索引
     time_accumulated: float = 0.0     # 累积的时间
     loop: bool = True                 # 是否循环播放
+    end_callback: Optional[Callable[[], None]] = None  # 动画结束回调
 
 class AnimationSystem(IAnimationSystem):
     def __init__(self):
@@ -68,7 +69,9 @@ class AnimationSystem(IAnimationSystem):
                         state.current_frame = 0
                     else:
                         state.current_frame = len(state.frames) - 1
-                        # 可以在这里触发动画完成事件
+                        # 触发动画完成回调
+                        if state.end_callback:
+                            state.end_callback()
 
     def get_current_frame(self, entity: Entity) -> Optional[pygame.Surface]:
         """获取实体当前的动画帧"""
@@ -77,3 +80,8 @@ class AnimationSystem(IAnimationSystem):
         
         state = self.animation_states[entity]
         return state.frames[state.current_frame]
+
+    def set_animation_end_callback(self, entity: Entity, callback: Callable[[], None]) -> None:
+        """设置动画结束时的回调函数"""
+        if entity in self.animation_states:
+            self.animation_states[entity].end_callback = callback

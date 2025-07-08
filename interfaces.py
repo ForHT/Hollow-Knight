@@ -115,6 +115,19 @@ class IAnimationSystem:
     def update(self, dt: float) -> None:
         raise NotImplementedError
 
+    def get_current_frame(self, entity: Entity) -> Optional[pygame.Surface]:
+        """获取实体当前的动画帧"""
+        raise NotImplementedError
+
+    def set_animation_end_callback(self, entity: Entity, callback: Callable[[], None]) -> None:
+        """设置动画结束时的回调函数
+        
+        Args:
+            entity: 要设置回调的实体
+            callback: 动画结束时调用的无参回调函数
+        """
+        raise NotImplementedError
+
 class ISceneManager:
     """场景管理接口"""
     def change_scene(self, scene_name: str) -> None:
