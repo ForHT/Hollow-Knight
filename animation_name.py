@@ -1,0 +1,31 @@
+# animation_name.py
+from enum import Enum, auto
+
+class AnimationName(Enum):
+    NU = 0
+    PLAYER_IDLE0 = auto()
+    PLAYER_WALKL0 = auto()
+    PLAYER_WALKR0 = auto()
+    PLAYER_DASH0 = auto()
+    PLAYER_JUMPSTART0 = auto()
+    PLAYER_ATTACK0 = auto()
+    PLAYER_UPATTACK0 = auto()
+    PLAYER_JUMPLOOP0 = auto()
+    PLAYER_ATTACKTWICE0 = auto()
+    PLAYER_DOUBLEJUMP0 = auto()
+    PLAYER_DOWNATTACK0 = auto()
+    PLAYER_DAMAGE0 = auto()
+    PLAYER_ATTACKHIT0 = auto()
+    PLAYER_DEATH0 = auto()
+    B_IDLEL0 = auto()
+    B_IDLER0 = auto()
+    B_JUMPDASH0 = auto()
+    B_WALK0 = auto()
+    B_THROWSIDE0 = auto()
+    B_JUMP0 = auto()
+    B_DASH0 = auto()
+    B_LAND0 = auto()
+    B_JUMPFINAL0 = auto()
+    BLOOD0 = auto()
+    BLOOD_DAMAGE0 = auto()
+    ARROR0 = auto()
