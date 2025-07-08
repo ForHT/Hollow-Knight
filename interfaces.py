@@ -1,13 +1,13 @@
 """
-½Ó¿ÚÔ¼¶¨ÎÄ¼ş
-¶¨ÒåÁË¸÷¸öÏµÍ³Ö®¼äµÄ½»»¥½Ó¿Ú
+æ¥å£çº¦å®šæ–‡ä»¶
+å®šä¹‰äº†å„ä¸ªç³»ç»Ÿä¹‹é—´çš„äº¤äº’æ¥å£
 """
 from typing import List, Tuple, Dict, Callable, Optional, Any
 import pygame
 from dataclasses import dataclass
 from enum import Enum, auto
 
-# ============= Êı¾İÀàĞÍ¶¨Òå =============
+# ============= æ•°æ®ç±»å‹å®šä¹‰ =============
 @dataclass
 class Vector2:
     x: float
@@ -34,9 +34,9 @@ class AnimationState(Enum):
     DASH = auto()
     DAMAGE = auto()
 
-# ============= ºËĞÄ½Ó¿Ú¶¨Òå =============
+# ============= æ ¸å¿ƒæ¥å£å®šä¹‰ =============
 class Entity:
-    """ËùÓĞÓÎÏ·ÊµÌåµÄ»ùÀà"""
+    """æ‰€æœ‰æ¸¸æˆå®ä½“çš„åŸºç±»"""
     def __init__(self, entity_type: EntityType, position: Vector2):
         self.entity_type = entity_type
         self.position = position
@@ -46,15 +46,15 @@ class Entity:
         self.facing_right: bool = True
         
     def update(self, dt: float) -> None:
-        """¸üĞÂÊµÌå×´Ì¬"""
+        """æ›´æ–°å®ä½“çŠ¶æ€"""
         raise NotImplementedError
         
     def draw(self, surface: pygame.Surface) -> None:
-        """»æÖÆÊµÌå"""
+        """ç»˜åˆ¶å®ä½“"""
         raise NotImplementedError
 
 class IPhysicsSystem:
-    """ÎïÀíÏµÍ³½Ó¿Ú"""
+    """ç‰©ç†ç³»ç»Ÿæ¥å£"""
     def add_entity(self, entity: Entity) -> None:
         raise NotImplementedError
         
@@ -68,7 +68,7 @@ class IPhysicsSystem:
         raise NotImplementedError
 
 class IAnimationSystem:
-    """¶¯»­ÏµÍ³½Ó¿Ú"""
+    """åŠ¨ç”»ç³»ç»Ÿæ¥å£"""
     def load_animation(self, name: str, sprite_sheet: pygame.Surface, 
                       frame_count: int, frame_time: float) -> None:
         raise NotImplementedError
@@ -81,7 +81,7 @@ class IAnimationSystem:
         raise NotImplementedError
 
 class ICombatSystem:
-    """Õ½¶·ÏµÍ³½Ó¿Ú"""
+    """æˆ˜æ–—ç³»ç»Ÿæ¥å£"""
     def register_attack(self, attacker: Entity, attack_data: Dict) -> None:
         raise NotImplementedError
         
@@ -92,7 +92,7 @@ class ICombatSystem:
         raise NotImplementedError
 
 class IInputHandler:
-    """ÊäÈë´¦Àí½Ó¿Ú"""
+    """è¾“å…¥å¤„ç†æ¥å£"""
     def handle_input(self, events: List[pygame.event.Event]) -> Dict[str, bool]:
         raise NotImplementedError
         
@@ -100,7 +100,7 @@ class IInputHandler:
         raise NotImplementedError
 
 class IResourceManager:
-    """×ÊÔ´¹ÜÀí½Ó¿Ú"""
+    """èµ„æºç®¡ç†æ¥å£"""
     def load_image(self, path: str) -> pygame.Surface:
         raise NotImplementedError
         
@@ -111,7 +111,7 @@ class IResourceManager:
         raise NotImplementedError
 
 class ISceneManager:
-    """³¡¾°¹ÜÀí½Ó¿Ú"""
+    """åœºæ™¯ç®¡ç†æ¥å£"""
     def change_scene(self, scene_name: str) -> None:
         raise NotImplementedError
         
@@ -122,7 +122,7 @@ class ISceneManager:
         raise NotImplementedError
 
 class IUIManager:
-    """UI¹ÜÀí½Ó¿Ú"""
+    """UIç®¡ç†æ¥å£"""
     def update(self, game_state: Dict) -> None:
         raise NotImplementedError
         
@@ -132,9 +132,9 @@ class IUIManager:
     def handle_input(self, event: pygame.event.Event) -> bool:
         raise NotImplementedError
 
-# ============= ÊÂ¼şÏµÍ³ =============
+# ============= äº‹ä»¶ç³»ç»Ÿ =============
 class EventManager:
-    """ÊÂ¼ş¹ÜÀíÆ÷£¬ÓÃÓÚÏµÍ³¼äÍ¨ĞÅ"""
+    """äº‹ä»¶ç®¡ç†å™¨ï¼Œç”¨äºç³»ç»Ÿé—´é€šä¿¡"""
     _subscribers: Dict[str, List[Callable]] = {}
     
     @classmethod

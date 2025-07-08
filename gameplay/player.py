@@ -1,6 +1,6 @@
 """
-Íæ¼ÒÀà
-´¦ÀíÍæ¼ÒÏà¹ØµÄÂß¼­
+çŽ©å®¶ç±»
+å¤„ç†çŽ©å®¶ç›¸å…³çš„é€»è¾‘
 """
 import pygame
 from typing import Dict, Optional
@@ -25,26 +25,26 @@ class Player(Entity):
         self.animation_state = AnimationState.IDLE
         
     def update(self, dt: float) -> None:
-        """¸üÐÂÍæ¼Ò×´Ì¬"""
-        # TODO: ´¦ÀíÍæ¼ÒÒÆ¶¯
-        # TODO: ´¦ÀíÍæ¼ÒÌøÔ¾
-        # TODO: ´¦ÀíÍæ¼Ò¹¥»÷
-        # TODO: ´¦ÀíÍæ¼Ò³å´Ì
-        # TODO: ¸üÐÂ¶¯»­×´Ì¬
+        """æ›´æ–°çŽ©å®¶çŠ¶æ€"""
+        # TODO: å¤„ç†çŽ©å®¶ç§»åŠ¨
+        # TODO: å¤„ç†çŽ©å®¶è·³è·ƒ
+        # TODO: å¤„ç†çŽ©å®¶æ”»å‡»
+        # TODO: å¤„ç†çŽ©å®¶å†²åˆº
+        # TODO: æ›´æ–°åŠ¨ç”»çŠ¶æ€
         pass
         
     def handle_input(self, keys: Dict[str, bool]) -> None:
-        """´¦ÀíÊäÈë"""
-        # TODO: ÊµÏÖÊäÈë´¦ÀíÂß¼­
+        """å¤„ç†è¾“å…¥"""
+        # TODO: å®žçŽ°è¾“å…¥å¤„ç†é€»è¾‘
         pass
         
     def take_damage(self, damage: int) -> None:
-        """ÊÜµ½ÉËº¦"""
-        if not self.is_dashing:  # ³å´ÌÊ±ÎÞµÐ
+        """å—åˆ°ä¼¤å®³"""
+        if not self.is_dashing:  # å†²åˆºæ—¶æ— æ•Œ
             self.health = max(0, self.health - damage)
             self.animation_state = AnimationState.DAMAGE
             
     def draw(self, surface: pygame.Surface) -> None:
-        """»æÖÆÍæ¼Ò"""
-        # TODO: ÊµÏÖÍæ¼Ò»æÖÆÂß¼­
+        """ç»˜åˆ¶çŽ©å®¶"""
+        # TODO: å®žçŽ°çŽ©å®¶ç»˜åˆ¶é€»è¾‘
         pass 

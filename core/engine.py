@@ -1,6 +1,6 @@
 """
-ÓÎÏ·ÒıÇæÖ÷Àà
-¸ºÔğĞ­µ÷¸÷¸öÏµÍ³µÄÔËĞĞ
+æ¸¸æˆå¼•æ“ä¸»ç±»
+è´Ÿè´£åè°ƒå„ä¸ªç³»ç»Ÿçš„è¿è¡Œ
 """
 import pygame
 from typing import Dict, Optional
@@ -17,7 +17,7 @@ from game.interfaces import (
 
 class GameEngine:
     def __init__(self):
-        """³õÊ¼»¯ÓÎÏ·ÒıÇæ"""
+        """åˆå§‹åŒ–æ¸¸æˆå¼•æ“"""
         pygame.init()
         self.running = False
         self.screen: Optional[pygame.Surface] = None
@@ -47,12 +47,12 @@ class GameEngine:
         # self.ui_manager = UIManager()
         
     def run(self) -> None:
-        """ÔËĞĞÓÎÏ·Ö÷Ñ­»·"""
+        """è¿è¡Œæ¸¸æˆä¸»å¾ªç¯"""
         if not self.screen:
             raise RuntimeError("Game engine not initialized. Call init() first.")
             
         self.running = True
-        screen = self.screen  # ÀàĞÍ¼ì²éÆ÷»áÈÏÎªÕâ¸ö±äÁ¿Ò»¶¨ÊÇpygame.Surface
+        screen = self.screen  # ç±»å‹æ£€æŸ¥å™¨ä¼šè®¤ä¸ºè¿™ä¸ªå˜é‡ä¸€å®šæ˜¯pygame.Surface
         
         while self.running:
             # ´¦ÀíÊÂ¼ş
@@ -97,6 +97,6 @@ class GameEngine:
             pygame.display.flip()
             
     def quit(self) -> None:
-        """ÍË³öÓÎÏ·"""
+        """é€€å‡ºæ¸¸æˆ"""
         self.running = False
         pygame.quit() 
