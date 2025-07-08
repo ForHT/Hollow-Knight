@@ -5,39 +5,21 @@ from typing import Dict, Optional
 class ResourceManager:
     def __init__(self):
         """初始化资源管理器"""
-        # 在这里初始化你的资源缓存字典
-        pass
+        self.sprite_sheets = {}  # 存储精灵表
+        self.sounds = {}        # 存储音效
 
-    def load_image(self, path: str) -> Optional[pygame.Surface]:
-        """加载图片资源
-        
-        Args:
-            path: 图片文件路径
-            
-        Returns:
-            Optional[pygame.Surface]: 加载的图片surface，如果加载失败则返回None
-        """
-        pass
+    def load_sprite_sheet(self, name: str, path: str) -> pygame.Surface:
+        """加载精灵表"""
+        image = pygame.image.load(path)
+        self.sprite_sheets[name] = image
+        return image
 
-    def preload_resources(self, resource_list: list[str]) -> None:
-        """预加载一组资源
-        
-        Args:
-            resource_list: 需要预加载的资源路径列表
-        """
-        pass
+    def get_sprite_sheet(self, name: str) -> Optional[pygame.Surface]:
+        """获取已加载的精灵表"""
+        return self.sprite_sheets.get(name)
 
-    def clear_cache(self) -> None:
-        """清除所有缓存的资源"""
-        pass
-
-    def get_resource(self, path: str) -> Optional[pygame.Surface]:
-        """获取已加载的资源
-        
-        Args:
-            path: 资源路径
-            
-        Returns:
-            Optional[pygame.Surface]: 资源对象，如果不存在则返回None
-        """
-        pass 
+    def load_sound(self, path: str) -> pygame.mixer.Sound:
+        """加载音效"""
+        sound = pygame.mixer.Sound(path)
+        self.sounds[path] = sound
+        return sound 

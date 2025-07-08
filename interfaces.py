@@ -67,18 +67,7 @@ class IPhysicsSystem:
     def check_collision(self, entity1: Entity, entity2: Entity) -> bool:
         raise NotImplementedError
 
-class IAnimationSystem:
-    """动画系统接口"""
-    def load_animation(self, name: str, sprite_sheet: pygame.Surface, 
-                      frame_count: int, frame_time: float) -> None:
-        raise NotImplementedError
-        
-    def play_animation(self, entity: Entity, animation_name: str, 
-                      loop: bool = True) -> None:
-        raise NotImplementedError
-        
-    def update(self, dt: float) -> None:
-        raise NotImplementedError
+
 
 class ICombatSystem:
     """战斗系统接口"""
@@ -101,13 +90,29 @@ class IInputHandler:
 
 class IResourceManager:
     """资源管理接口"""
-    def load_image(self, path: str) -> pygame.Surface:
+    def load_sprite_sheet(self, name: str, path: str) -> pygame.Surface:
+        """加载精灵表"""
         raise NotImplementedError
         
+    def get_sprite_sheet(self, name: str) -> Optional[pygame.Surface]:
+        """获取已加载的精灵表"""
+        raise NotImplementedError
+
     def load_sound(self, path: str) -> pygame.mixer.Sound:
+        """加载音效"""
+        raise NotImplementedError
+
+class IAnimationSystem:
+    """动画系统接口"""
+    def load_animation(self, name: str, sprite_sheet: pygame.Surface, 
+                      frame_count: int, frame_time: float) -> None:
         raise NotImplementedError
         
-    def get_animation(self, name: str) -> List[pygame.Surface]:
+    def play_animation(self, entity: Entity, animation_name: str, 
+                      loop: bool = True) -> None:
+        raise NotImplementedError
+        
+    def update(self, dt: float) -> None:
         raise NotImplementedError
 
 class ISceneManager:
