@@ -17,6 +17,13 @@ class CombatSystem(ICombatSystem):
         if player.state == "dead":
             return
 
+        # 1. 玩家受到特效攻击的伤害
+        for effect in self.vfx_manager.effects:
+            effect_hitbox = effect.get_attack_hitbox()
+            if player.invincible_timer <= 0 and effect_hitbox and effect_hitbox.colliderect(player.hitbox):
+                if hasattr(effect, 'damage'):
+                    player.take_damage(effect.damage)
+
         for boss in enemies:
             if boss.state == "dead":
                 continue

@@ -3,12 +3,14 @@
 from typing import Dict, List, Optional, Callable
 import pygame
 from dataclasses import dataclass
+from pygame import Rect
 
 from interfaces import IAnimationSystem, Entity, EntityType, Vector2
 
 @dataclass
 class AnimationState:
     """动画状态数据"""
+    prefix: str                       # 动画前缀 (e.g., "player", "boss")
     name: str                         # 动画全名 (e.g., "walk_left")
     frames: List[pygame.Surface]      # 动画的所有帧
     intervals: List[float]            # 每帧的持续时间 (秒)
@@ -23,60 +25,78 @@ class AnimationState:
 
 class AnimationSystem(IAnimationSystem):
     def __init__(self):
-        # 新的数据结构，存储解析后的动画数据
+        # 新的数据结构，按前缀存储动画，防止命名冲突
         self.animation_data: Dict[str, Dict] = {}
         # 实体当前的动画状态
         self.entity_states: Dict[Entity, AnimationState] = {}
         
-    def load_animations(self, config: Dict):
-        """从新的配置字典中加载所有动画。"""
+    def load_entity_animations(self, prefix: str, config: Dict):
+        """从配置字典中加载特定前缀的所有动画。"""
+        if prefix not in self.animation_data:
+            self.animation_data[prefix] = {}
+
         for state_name, directions in config.items():
             for direction, data in directions.items():
                 animation_name = f"{state_name}_{direction}"
                 
                 frames = []
                 path_template = data["path_template"]
-                for i in range(data["frame_count"]):
-                    path = path_template.format(i)
-                    try:
-                        frames.append(pygame.image.load(path).convert_alpha())
-                    except pygame.error as e:
-                        print(f"Error loading frame {path}: {e}")
-                        continue
+
+                # 优先使用 frame_names 加载
+                if "frame_names" in data:
+                    for name in data["frame_names"]:
+                        path = path_template.format(name)
+                        try:
+                            frames.append(pygame.image.load(path).convert_alpha())
+                        except pygame.error as e:
+                            print(f"Error loading frame {path}: {e}")
+                            continue
+                else: # 兼容旧的 frame_count 写法
+                    for i in range(data["frame_count"]):
+                        path = path_template.format(i)
+                        try:
+                            frames.append(pygame.image.load(path).convert_alpha())
+                        except pygame.error as e:
+                            print(f"Error loading frame {path}: {e}")
+                            continue
                 
                 # 将C++的帧数（1/60秒）转换为秒
                 intervals_in_seconds = [t * (1/60.0) for t in data["frame_intervals"]]
                 
                 displacements_as_vectors = [Vector2(d) for d in data["displacements"]]
 
-                self.animation_data[animation_name] = {
+                self.animation_data[prefix][animation_name] = {
                     "frames": frames,
                     "intervals": intervals_in_seconds,
                     "displacements": displacements_as_vectors,
                     "loop": data["loop"],
                     "next_state": data.get("next_state"),
-                    "effects": data.get("effects") # 加载特效触发数据
+                    "effects": data.get("effects"), # 加载特效触发数据
+                    "damage": data.get("damage", 0) # 读取伤害值
                 }
-        print("Animation loading complete.")
+        print(f"Animations for prefix '{prefix}' loaded.")
         
-    def play_animation(self, entity: Entity, state_name: str, loop_override: Optional[bool] = None):
-        """根据状态名和朝向播放动画。"""
+    def play_animation(self, prefix: str, entity: Entity, state_name: str, loop_override: Optional[bool] = None):
+        """根据前缀、状态名和朝向播放动画。"""
         direction = "right" if entity.facing_right else "left"
         animation_name = f"{state_name}_{direction}"
 
-        # 如果动画不存在，则不执行任何操作
-        if animation_name not in self.animation_data:
-            # print(f"Animation '{animation_name}' not found.")
+        # 检查动画是否存在
+        if prefix not in self.animation_data or animation_name not in self.animation_data[prefix]:
+            # print(f"Animation '{prefix}:{animation_name}' not found.")
             return
             
         # 如果已经在播放此动画，则不打断
-        if entity in self.entity_states and self.entity_states[entity].name == animation_name:
+        if (entity in self.entity_states and 
+            self.entity_states[entity].prefix == prefix and
+            self.entity_states[entity].name == animation_name):
             return
             
-        data = self.animation_data[animation_name]
+        data = self.animation_data[prefix][animation_name]
         loop = loop_override if loop_override is not None else data["loop"]
         
         new_state = AnimationState(
+            prefix=prefix,
             name=animation_name,
             frames=data["frames"],
             intervals=data["intervals"],
@@ -133,10 +153,10 @@ class AnimationSystem(IAnimationSystem):
                 # 检查是否需要触发后续帧的特效
                 if state.effects:
                     for effect_data in state.effects:
-                        if effect_data["frame"] == state.current_frame:
+                        if effect_data["frame"] == state.current_frame and entity.hitbox:
                             offset = Vector2(effect_data["offset"]["x"], effect_data["offset"]["y"])
-                            # 特效位置 = 实体中心 + 偏移
-                            spawn_pos = entity.hitbox.center + offset
+                            # 特效位置 = 实体中心 + 偏移 (将 center 转为 Vector2)
+                            spawn_pos = Vector2(entity.hitbox.center) + offset
                             effects_to_spawn.append({
                                 "name": effect_data["name"],
                                 "pos": spawn_pos,
@@ -178,10 +198,12 @@ class AnimationSystem(IAnimationSystem):
 # 为了避免循环导入，将Effect类从vfx_system移动到这里
 class Effect(Entity):
     """代表一个独立的视觉特效（VFX）"""
-    def __init__(self, pos: Vector2, animation_name: str, animation_system: "AnimationSystem", facing_right: bool, is_one_shot: bool = True):
+    def __init__(self, pos: Vector2, prefix: str, animation_name: str, animation_system: "AnimationSystem", facing_right: bool, is_one_shot: bool = True, damage: int = 0):
         # 获取动画的第一帧来确定特效的大小
         temp_anim_name = f"{animation_name}_{'right' if facing_right else 'left'}"
-        first_frame = animation_system.animation_data.get(temp_anim_name, {}).get("frames", [None])[0]
+        
+        # 从带前缀的数据中获取帧
+        first_frame = animation_system.animation_data.get(prefix, {}).get(temp_anim_name, {}).get("frames", [None])[0]
         size = first_frame.get_size() if first_frame else (0, 0)
 
         super().__init__(pos, size, entity_type=EntityType.EFFECT)
@@ -192,14 +214,27 @@ class Effect(Entity):
         self.is_one_shot = is_one_shot
         self.is_alive = True
         
-        self.animation_system.play_animation(self, animation_name, loop_override=not is_one_shot)
+        self.damage = damage
+        self.attack_hitbox: Optional[Rect] = None
+        if self.damage > 0:
+            # 如果特效有伤害，则其判定框大小等于其图像大小
+            self.attack_hitbox = pygame.Rect(0, 0, size[0], size[1])
+            self.attack_hitbox.center = (int(self.position.x), int(self.position.y))
+
+        self.animation_system.play_animation(prefix, self, animation_name, loop_override=not is_one_shot)
 
     def update(self, *args, **kwargs):
         if self.is_one_shot:
             state = self.animation_system.entity_states.get(self)
             if state and not state.loop and state.current_frame >= len(state.frames) - 1:
                 self.is_alive = False
+        
+        if self.attack_hitbox:
+            self.attack_hitbox.center = (int(self.position.x), int(self.position.y))
             
+    def get_attack_hitbox(self) -> Optional[Rect]:
+        return self.attack_hitbox
+
     def draw(self, surface: pygame.Surface):
         """绘制特效的当前帧"""
         current_frame = self.animation_system.get_current_frame(self)
@@ -215,7 +250,14 @@ class VFXManager:
         
     def create_effect(self, pos: Vector2, animation_name: str, facing_right: bool, is_one_shot: bool = True):
         """在指定位置创建一个新的特效"""
-        effect = Effect(pos, animation_name, self.animation_system, facing_right, is_one_shot)
+        prefix = "effect"
+        direction = "right" if facing_right else "left"
+        anim_full_name = f"{animation_name}_{direction}"
+        
+        anim_data = self.animation_system.animation_data.get(prefix, {}).get(anim_full_name, {})
+        damage = anim_data.get("damage", 0)
+
+        effect = Effect(pos, prefix, animation_name, self.animation_system, facing_right, is_one_shot, damage)
         self.effects.append(effect)
         
     def update(self, dt: float):

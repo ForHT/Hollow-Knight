@@ -25,8 +25,8 @@ GRAVITY = 2.5
 PLAYER_GROUND_Y = 680
 
 # Boss在地面上时，其hitbox.bottom所在的Y坐标
-# 对应C++代码中的: if (enemy.position.y > 585)
-ENEMY_GROUND_Y = 585
+# C++代码中的值为585，但为了统一，这里也使用和玩家一样的高度
+ENEMY_GROUND_Y = 680
 
 
 # ==============================================================================
@@ -60,7 +60,7 @@ PLAYER_DASH_COOLDOWN = 30
 # >> Boss 属性 (Boss Attributes)
 # ==============================================================================
 # Boss的初始和最大生命值
-BOSS_HEALTH = 50
+BOSS_HEALTH = 10
 
 # Boss的攻击特效造成的伤害
 BOSS_ATTACK_POWER = 1
@@ -69,12 +69,16 @@ BOSS_ATTACK_POWER = 1
 BOSS_BODY_DAMAGE = 1
 
 # --- Boss AI 冷却时间 (帧) ---
-BOSS_ACTION_COOLDOWN = 30       # 两次行动之间的通用冷却时间
+BOSS_ACTION_COOLDOWN = 60       # 两次行动之间的通用冷却时间
 BOSS_WALK_COOLDOWN = 75
-BOSS_JUMP_COOLDOWN = 60
-BOSS_JUMPDASH_COOLDOWN = 120
-BOSS_DASH_COOLDOWN = 50
-BOSS_JUMPFINAL_COOLDOWN = 240
+BOSS_JUMP_COOLDOWN = 120
+BOSS_JUMPDASH_COOLDOWN = 240
+BOSS_DASH_COOLDOWN = 100
+BOSS_JUMPFINAL_COOLDOWN = 480
+
+# --- Boss AI 距离阈值 (像素) ---
+BOSS_AI_CLOSE_DISTANCE = 250   # 小于该值视为近距离
+BOSS_AI_MEDIUM_DISTANCE = 700  # 小于该值视为中距离，大于等于则为远距离
 
 
 # ==============================================================================

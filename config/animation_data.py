@@ -356,9 +356,194 @@ EFFECT_ANIMATIONS = {
             "displacements": [(0, 0)] * 5,
             "loop": False
         }
+    },
+    "boss_dash_effect": {
+        "left": {
+            "path_template": "resource/img/hollow knight/Boss/Dash/{}.png",
+            "frame_names": ["00", "01", "02", "03"],
+            "frame_intervals": [4, 4, 4, 4],
+            "displacements": [(0, 0)] * 4,
+            "loop": False
+        },
+        "right": {
+            "path_template": "resource/img/hollow knight/Boss/DashR/{}.png",
+            "frame_names": ["00", "01", "02", "03"],
+            "frame_intervals": [4, 4, 4, 4],
+            "displacements": [(0, 0)] * 4,
+            "loop": False
+        }
+    },
+    "boss_jump_final_effect": {
+        "left": {
+            "path_template": "resource/img/hollow knight/Boss/JumpFinal/Effects/{}.png",
+            "frame_names": [
+                "00", "01", "02", "03", "04", "05", "06", "07", "08", "09", 
+                "010", "011", "012", "013", "014", "015", "016", "017"
+            ],
+            "frame_intervals": [4] * 18,
+            "displacements": [(0, 0)] * 18,
+            "loop": False,
+            "damage": 1
+        },
+        "right": {
+            "path_template": "resource/img/hollow knight/Boss/JumpFinalR/Effects/{}.png",
+            "frame_names": [
+                "00", "01", "02", "03", "04", "05", "06", "07", "08", "09", 
+                "010", "011", "012", "013", "014", "015", "016"
+            ],
+            "frame_intervals": [4] * 17,
+            "displacements": [(0, 0)] * 17,
+            "loop": False,
+            "damage": 1
+        }
     }
 }
 
+
+BOSS_ANIMATIONS = {
+    "idle": {
+        "left": {
+            "path_template": "resource/img/hollow knight/Boss/Idle/{}.png",
+            "frame_names": ["0", "1"],
+            "frame_intervals": [12, 12],
+            "displacements": [(0, 0)] * 2,
+            "loop": True
+        },
+        "right": {
+            "path_template": "resource/img/hollow knight/Boss/IdleR/{}.png",
+            "frame_names": ["0", "1"],
+            "frame_intervals": [12, 12],
+            "displacements": [(0, 0)] * 2,
+            "loop": True
+        }
+    },
+    "walk": {
+        "left": {
+            "path_template": "resource/img/hollow knight/Boss/Walk/{}.png",
+            "frame_names": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
+            "frame_intervals": [3] * 11,
+            "displacements": [(0, 0)] * 11,
+            "loop": True
+        },
+        "right": {
+            "path_template": "resource/img/hollow knight/Boss/WalkR/{}.png",
+            "frame_names": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
+            "frame_intervals": [3] * 11,
+            "displacements": [(0, 0)] * 11,
+            "loop": True
+        }
+    },
+    "jump": {
+        "left": {
+            "path_template": "resource/img/hollow knight/Boss/Jump/{}.png",
+            "frame_names": [
+                "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", 
+                "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25",
+                "26", "27", "28"
+            ],
+            "frame_intervals": [3] * 29,
+            "displacements": [(0, 0)] * 29,
+            "loop": False,
+            "next_state": "idle"
+        },
+        "right": {
+            "path_template": "resource/img/hollow knight/Boss/JumpR/{}.png",
+            "frame_names": [
+                "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", 
+                "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25",
+                "26", "27", "28"
+            ],
+            "frame_intervals": [3] * 29,
+            "displacements": [(0, 0)] * 29,
+            "loop": False,
+            "next_state": "idle"
+        }
+    },
+    "dash": {
+        "left": {
+            "path_template": "resource/img/hollow knight/Boss/Dash/{}.png",
+            "frame_names": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"],
+            "frame_intervals": [3] * 12,
+            "displacements": [(-20, 0)] * 12,
+            "loop": False,
+            "next_state": "idle",
+            "effects": [
+                { "name": "boss_dash_effect", "frame": 2, "offset": {"x": 0, "y": -20} }
+            ]
+        },
+        "right": {
+            "path_template": "resource/img/hollow knight/Boss/DashR/{}.png",
+            "frame_names": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"],
+            "frame_intervals": [3] * 12,
+            "displacements": [(20, 0)] * 12,
+            "loop": False,
+            "next_state": "idle",
+            "effects": [
+                { "name": "boss_dash_effect", "frame": 2, "offset": {"x": 0, "y": -20} }
+            ]
+        }
+    },
+    "jump_dash": {
+        "left": {
+            "path_template": "resource/img/hollow knight/Boss/JumpDash/{}.png",
+            "frame_names": [
+                "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", 
+                "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25",
+                "26", "27", "28"
+            ],
+            "frame_intervals": [3] * 29,
+            "displacements": [(0, 0)] * 29,
+            "loop": False,
+            "next_state": "idle"
+        },
+        "right": {
+            "path_template": "resource/img/hollow knight/Boss/JumpDashR/{}.png",
+            "frame_names": [
+                "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", 
+                "14", "15", "16", "17", "18", "19", "20", "21", "22", "220", "23", "24", 
+                "25", "26", "27", "28"
+            ],
+            "frame_intervals": [3] * 30,
+            "displacements": [(0, 0)] * 30,
+            "loop": False,
+            "next_state": "idle"
+        }
+    },
+    "jump_final": {
+        "left": {
+            "path_template": "resource/img/hollow knight/Boss/JumpFinal/{}.png",
+            "frame_names": [
+                "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", 
+                "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25",
+                "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37",
+                "38", "39", "40", "41", "42", "43", "44", "45"
+            ],
+            "frame_intervals": [4] * 46,
+            "displacements": [(0, 0)] * 46,
+            "loop": False,
+            "next_state": "idle",
+            "effects": [
+                { "name": "boss_jump_final_effect", "frame": 7, "offset": {"x": 0, "y": 100} }
+            ]
+        },
+        "right": {
+            "path_template": "resource/img/hollow knight/Boss/JumpFinalR/{}.png",
+            "frame_names": [
+                "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", 
+                "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25",
+                "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37",
+                "38", "39", "40", "41", "42", "43", "44", "45"
+            ],
+            "frame_intervals": [4] * 46,
+            "displacements": [(0, 0)] * 46,
+            "loop": False,
+            "next_state": "idle",
+             "effects": [
+                { "name": "boss_jump_final_effect", "frame": 7, "offset": {"x": 0, "y": 100} }
+            ]
+        }
+    }
+}
 # TODO: 以后我们还会在这里添加 BOSS_ANIMATIONS 和 EFFECT_ANIMATIONS
 # C++ 代码中的特效是和攻击动画绑定的，我们需要一个新的系统来处理
 # 暂时将特效数据注释掉，后续再整合

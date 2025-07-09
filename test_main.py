@@ -7,7 +7,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 from core.animation_system import AnimationSystem, VFXManager
 from interfaces import Entity, EntityType, Vector2, GameState
-from config.animation_data import PLAYER_ANIMATIONS, EFFECT_ANIMATIONS
+from config.animation_data import PLAYER_ANIMATIONS, EFFECT_ANIMATIONS, BOSS_ANIMATIONS
 from configs import FPS, SCREEN_WIDTH, SCREEN_HEIGHT, PLAYER_GROUND_Y
 from systems.combat import CombatSystem
 from systems.physics import PhysicsSystem
@@ -54,9 +54,10 @@ physics_system = PhysicsSystem(screen.get_rect())
 vfx_manager = VFXManager(animation_system)
 combat_system = CombatSystem(physics_system, vfx_manager)
 
-# 使用新的加载方法
-animation_system.load_animations(PLAYER_ANIMATIONS)
-animation_system.load_animations(EFFECT_ANIMATIONS)
+# 使用新的加载方法，为不同实体的动画添加前缀
+animation_system.load_entity_animations("player", PLAYER_ANIMATIONS)
+animation_system.load_entity_animations("effect", EFFECT_ANIMATIONS)
+animation_system.load_entity_animations("boss", BOSS_ANIMATIONS)
 
 # --- 实体变量 ---
 player: Optional[Player] = None
@@ -118,7 +119,9 @@ while running:
         physics_system.update()
         combat_system.update(player, [boss])
         
-        animation_system.play_animation(player, player.state)
+        animation_system.play_animation("player", player, player.state)
+        animation_system.play_animation("boss", boss, boss.state)
+
         # 更新动画系统并生成特效
         effects_to_spawn = animation_system.update(dt)
         for effect_data in effects_to_spawn:
@@ -147,11 +150,28 @@ while running:
                 frame_rect.midbottom = (int(player.position.x), int(player.position.y))
                 screen.blit(current_frame, frame_rect.topleft)
             
-            boss.draw(screen, Vector2(0,0))
+            # Boss绘制
+            boss_current_frame = animation_system.get_current_frame(boss)
+            if boss_current_frame:
+                boss_frame_rect = boss_current_frame.get_rect()
+                boss_frame_rect.midbottom = (int(boss.position.x), int(boss.position.y))
+                screen.blit(boss_current_frame, boss_frame_rect.topleft)
+
             draw_player_health(player)
             
             # 绘制特效
             vfx_manager.draw(screen)
+
+            # # --- 调试代码：绘制判定框 ---
+            # # 绘制玩家的hitbox (蓝色)
+            # pygame.draw.rect(screen, (0, 0, 255), player.hitbox, 2)
+
+            # # 绘制特效的攻击hitbox (红色)
+            # for effect in vfx_manager.effects:
+            #     attack_box = effect.get_attack_hitbox()
+            #     if attack_box:
+            #         pygame.draw.rect(screen, (255, 0, 0), attack_box, 2)
+            # # --- 调试代码结束 ---
 
             # if "attack" in player.state:
             #     player_attack = player.get_attack_hitbox()

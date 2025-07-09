@@ -6,7 +6,8 @@ from interfaces import Entity, EntityType, Vector2, Rect
 from configs import (
     BOSS_HEALTH, BOSS_ATTACK_POWER, BOSS_BODY_DAMAGE, ENEMY_GROUND_Y,
     BOSS_ACTION_COOLDOWN, BOSS_WALK_COOLDOWN, BOSS_JUMP_COOLDOWN, 
-    BOSS_JUMPDASH_COOLDOWN, BOSS_DASH_COOLDOWN, BOSS_JUMPFINAL_COOLDOWN
+    BOSS_JUMPDASH_COOLDOWN, BOSS_DASH_COOLDOWN, BOSS_JUMPFINAL_COOLDOWN,
+    BOSS_AI_CLOSE_DISTANCE, BOSS_AI_MEDIUM_DISTANCE
 )
 
 class Boss(Entity):
@@ -39,11 +40,15 @@ class Boss(Entity):
         """决定下一步行动的核心AI逻辑。"""
         self.action_cooldown = BOSS_ACTION_COOLDOWN
         
-        # 判断朝向玩家的方向
-        player_is_to_the_right = player_pos.x > self.position.x
-        self.facing_right = player_is_to_the_right
+        # 1. 判断朝向玩家的方向
+        if self.state in ["idle", "walk"]: # 只有在地面非攻击状态下才转身
+            player_is_to_the_right = player_pos.x > self.position.x
+            self.facing_right = player_is_to_the_right
 
-        # 创建一个可用招式的列表
+        # 2. 计算与玩家的距离
+        distance_to_player = abs(player_pos.x - self.position.x)
+
+        # 3. 获取所有冷却结束的招式
         available_moves = []
         if self.walk_cooldown <= 0: available_moves.append(self.walk)
         if self.jump_cooldown <= 0: available_moves.append(self.jump)
@@ -51,37 +56,65 @@ class Boss(Entity):
         if self.jumpdash_cooldown <= 0: available_moves.append(self.jumpdash)
         if self.jumpfinal_cooldown <= 0: available_moves.append(self.jumpfinal)
 
+        # 如果所有技能都在冷却，则什么都不做
         if not available_moves:
-            self.walk() # 如果没有可用招式，则执行默认行动
+            self.state = "idle"
             return
 
-        # 随机选择并执行一个招式
-        chosen_move = random.choice(available_moves)
-        chosen_move()
+        # 4. 根据距离筛选出合适的招式列表
+        preferred_moves = []
+        if distance_to_player < BOSS_AI_CLOSE_DISTANCE:
+            # 近距离：使用普通跳跃拉开距离
+            preferred_moves.append(self.jump)
+        elif distance_to_player < BOSS_AI_MEDIUM_DISTANCE:
+            # 中距离：使用舞丝攻击或行走调整位置
+            preferred_moves.append(self.jumpfinal)
+            preferred_moves.append(self.walk)
+        else: # 远距离
+            # 远距离：使用冲刺或跳跃冲刺来接近
+            preferred_moves.append(self.dash)
+            preferred_moves.append(self.jumpdash)
+        
+        # 5. 找出当前可用且合适的招式
+        valid_moves = [move for move in preferred_moves if move in available_moves]
+
+        # 6. 决策
+        if valid_moves:
+            # 从合适的招式中随机选择一个执行
+            chosen_move = random.choice(valid_moves)
+            chosen_move()
+        else:
+            # 如果当前距离下没有合适的招式可用（比如都在CD），
+            # 则从所有可用的招式中选择一个执行，优先选择行走
+            if self.walk in available_moves:
+                self.walk()
+            else:
+                # 如果行走也在CD，就从剩下可用的里面随便选一个
+                random.choice(available_moves)()
 
     def walk(self):
-        self.state = "b_walk"
+        self.state = "walk"
         self.walk_cooldown = BOSS_WALK_COOLDOWN
         self.action_timer = 60 # 行走60帧
         
     def jump(self):
-        self.state = "b_jump"
+        self.state = "jump"
         self.jump_cooldown = BOSS_JUMP_COOLDOWN
         self.velocity.y = -60 # 来自C++代码
         self.action_timer = 120 # 大概的持续时间
 
     def dash(self):
-        self.state = "b_dash"
+        self.state = "dash"
         self.dash_cooldown = BOSS_DASH_COOLDOWN
         self.action_timer = 30 # 冲刺30帧
 
     def jumpdash(self):
-        self.state = "b_jumpdash"
+        self.state = "jump_dash"
         self.jumpdash_cooldown = BOSS_JUMPDASH_COOLDOWN
         self.action_timer = 100 # 大概的持续时间
 
     def jumpfinal(self):
-        self.state = "b_jumpfinal"
+        self.state = "jump_final"
         self.jumpfinal_cooldown = BOSS_JUMPFINAL_COOLDOWN
         self.velocity.y = -60
         self.action_timer = 180 # 大概的持续时间
@@ -104,31 +137,31 @@ class Boss(Entity):
         if self.action_timer > 0: self.action_timer -= 1
 
         # 2. AI决策
-        if self.action_cooldown <= 0 and self.state in ["idle", "b_walk"]:
+        if self.action_cooldown <= 0 and self.state in ["idle", "walk"]:
              self.decide_action(player_pos)
         
         # 3. 执行状态逻辑
         if self.state == "idle":
              self.velocity.x = 0
-        elif self.state == "b_walk":
-            self.velocity.x = 3 if self.facing_right else -3
+        elif self.state == "walk":
+            self.velocity.x = 7 if self.facing_right else -7
             if self.action_timer <= 0:
                 self.state = "idle"
-        elif self.state == "b_dash":
+        elif self.state == "dash":
             self.velocity.x = 15 if self.facing_right else -15
             if self.action_timer <= 0:
                 self.state = "idle"
 
         # --- 攻击状态逻辑 ---
-        elif self.state == "b_jump":
+        elif self.state == "jump":
             # 简单跳跃，水平移动较少
             if self.on_ground and self.velocity.y == 0:
                 self.state = "idle"
-        elif self.state == "b_jumpdash":
+        elif self.state == "jump_dash":
             # 一个更复杂的冲刺跳跃，暂时当作普通跳跃处理
             if self.on_ground and self.velocity.y == 0:
                 self.state = "idle"
-        elif self.state == "b_jumpfinal":
+        elif self.state == "jump_final":
             # 追踪跳跃攻击
             direction_to_player = 1 if player_pos.x > self.position.x else -1
             # 在C++中，这是由dmove处理的。我们用速度来模拟它。
@@ -149,6 +182,4 @@ class Boss(Entity):
             print(f"Boss took {amount} damage, health: {self.health}")
 
     def draw(self, surface: pygame.Surface, camera_offset: Vector2):
-        color = (255, 0, 0) # Red
-        if self.state != "dead":
-            pygame.draw.rect(surface, color, self.hitbox.move(-camera_offset.x, -camera_offset.y))
+        pass
