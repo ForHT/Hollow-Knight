@@ -10,44 +10,44 @@ PLAYER_ANIMATIONS = {
         "loop": True
     },
     "jump_start": {
-        "frames": 4,  # ¸ù¾İÊµ¼ÊÖ¡Êıµ÷Õû
+        "frames": 4,  # æ ¹æ®å®é™…å¸§æ•°è°ƒæ•´
         "frame_time": 0.08,
         "loop": False,
-        "next_state": "jump_loop"  # Ìí¼ÓÏÂÒ»¸ö×´Ì¬
+        "next_state": "jump_loop"  # æ·»åŠ ä¸‹ä¸€ä¸ªçŠ¶æ€
     },
     "jump_loop": {
-        "frames": 3,  # ¸ù¾İÊµ¼ÊÖ¡Êıµ÷Õû
+        "frames": 3,  # æ ¹æ®å®é™…å¸§æ•°è°ƒæ•´
         "frame_time": 0.1,
         "loop": True,
-        "interrupt_states": ["jump_land"]  # ¿ÉÒÔ±»ÖĞ¶ÏµÄ×´Ì¬
+        "interrupt_states": ["jump_land"]  # å¯ä»¥è¢«ä¸­æ–­çš„çŠ¶æ€
     },
     "jump_land": {
-        "frames": 3,  # ¸ù¾İÊµ¼ÊÖ¡Êıµ÷Õû
+        "frames": 3,  # æ ¹æ®å®é™…å¸§æ•°è°ƒæ•´
         "frame_time": 0.08,
         "loop": False,
-        "next_state": "idle"  # ÂäµØºó»Øµ½idle×´Ì¬
+        "next_state": "idle"  # è½åœ°åå›åˆ°idleçŠ¶æ€
     },
     "attack": {
-        "frames": 4,  # ¸ù¾İÊµ¼ÊÖ¡Êıµ÷Õû
+        "frames": 4,  # æ ¹æ®å®é™…å¸§æ•°è°ƒæ•´
         "frame_time": 0.08,
         "loop": False,
-        "next_state": "idle"  # ¹¥»÷½áÊø»Øµ½idle
+        "next_state": "idle"  # æ”»å‡»ç»“æŸå›åˆ°idle
     },
     "attack_up": {
-        "frames": 4,  # ¸ù¾İÊµ¼ÊÖ¡Êıµ÷Õû
+        "frames": 4,  # æ ¹æ®å®é™…å¸§æ•°è°ƒæ•´
         "frame_time": 0.08,
         "loop": False,
         "next_state": "idle"
     },
     "attack_down": {
-        "frames": 4,  # ¸ù¾İÊµ¼ÊÖ¡Êıµ÷Õû
+        "frames": 4,  # æ ¹æ®å®é™…å¸§æ•°è°ƒæ•´
         "frame_time": 0.08,
         "loop": False,
         "next_state": "idle"
     },
     "dash": {
-        "frames": 5,  # ¸ù¾İDashÎÄ¼ş¼ĞÖĞµÄÍ¼Æ¬ÊıÁ¿
-        "frame_time": 0.06,  # ³å´Ì¶¯»­ÉÔ¿ì
+        "frames": 5,  # æ ¹æ®Dashæ–‡ä»¶å¤¹ä¸­çš„å›¾ç‰‡æ•°é‡
+        "frame_time": 0.06,  # å†²åˆºåŠ¨ç”»ç¨å¿«
         "loop": False,
         "next_state": "idle"
     },
@@ -55,36 +55,36 @@ PLAYER_ANIMATIONS = {
 }
 EFFECT_ANIMATIONS = {
     "dash_effect": {
-        "frames": 5,  # ¸ù¾İÊµ¼ÊÍ¼Æ¬ÊıÁ¿µ÷Õû
+        "frames": 5,  # æ ¹æ®å®é™…å›¾ç‰‡æ•°é‡è°ƒæ•´
         "frame_time": 0.05,
         "loop": False
     }
 }
 
-# ¿ÉÒÔÌí¼ÓÆäËûÊµÌåµÄ¶¯»­ÅäÖÃ
+# å¯ä»¥æ·»åŠ å…¶ä»–å®ä½“çš„åŠ¨ç”»é…ç½®
 ENEMY_ANIMATIONS = {
     "idle": {
         "frames": 4,
         "frame_time": 0.2,
         "loop": True
     },
-    # ... ÆäËûµĞÈË¶¯»­
+    # ... å…¶ä»–æ•ŒäººåŠ¨ç”»
 }
 
-# ¶¯»­×´Ì¬»ú£º¶¨Òå×´Ì¬Ö®¼äµÄºÏ·¨×ª»»
+# åŠ¨ç”»çŠ¶æ€æœºï¼šå®šä¹‰çŠ¶æ€ä¹‹é—´çš„åˆæ³•è½¬æ¢
 PLAYER_STATE_MACHINE = {
-    "idle": ["walk", "jump_start", "attack", "attack_up", "attack_down", "dash"],  # ´ı»ú¿ÉÒÔ×ª»»µ½ËùÓĞ¶¯×÷
-    "walk": ["idle", "jump_start", "attack", "attack_up", "attack_down", "dash"],  # ĞĞ×ß¿ÉÒÔ×ª»»µ½ËùÓĞ¶¯×÷
-    "jump_start": ["jump_loop"],  # ÌøÔ¾¿ªÊ¼±ØÈ»×ªµ½Ñ­»·
-    "jump_loop": ["jump_land", "attack", "attack_up", "attack_down"],   # ¿ÕÖĞ¿ÉÒÔ¹¥»÷
-    "jump_land": ["idle"],        # ÂäµØºó»Øµ½´ı»ú
-    "attack": ["idle", "walk"],   # ¹¥»÷½áÊø¿ÉÒÔ»Øµ½idle»òwalk
+    "idle": ["walk", "jump_start", "attack", "attack_up", "attack_down", "dash"],  # å¾…æœºå¯ä»¥è½¬æ¢åˆ°æ‰€æœ‰åŠ¨ä½œ
+    "walk": ["idle", "jump_start", "attack", "attack_up", "attack_down", "dash"],  # è¡Œèµ°å¯ä»¥è½¬æ¢åˆ°æ‰€æœ‰åŠ¨ä½œ
+    "jump_start": ["jump_loop"],  # è·³è·ƒå¼€å§‹å¿…ç„¶è½¬åˆ°å¾ªç¯
+    "jump_loop": ["jump_land", "attack", "attack_up", "attack_down"],   # ç©ºä¸­å¯ä»¥æ”»å‡»
+    "jump_land": ["idle"],        # è½åœ°åå›åˆ°å¾…æœº
+    "attack": ["idle", "walk"],   # æ”»å‡»ç»“æŸå¯ä»¥å›åˆ°idleæˆ–walk
     "attack_up": ["idle", "walk"],
     "attack_down": ["idle", "walk"],
-    "dash": ["idle", "attack", "attack_up", "attack_down"]  # ³å´Ì¿ÉÒÔÖ±½Ó½Ó¹¥»÷
+    "dash": ["idle", "attack", "attack_up", "attack_down"]  # å†²åˆºå¯ä»¥ç›´æ¥æ¥æ”»å‡»
 }
 
-# ×ÊÔ´Â·¾¶ÅäÖÃ
+# èµ„æºè·¯å¾„é…ç½®
 ANIMATION_PATHS = {
     "player": {
         "idle": "assets/sprites/player/idle/{frame}.PNG",

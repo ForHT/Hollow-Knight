@@ -4,7 +4,7 @@ from typing import Dict, List, Optional, Callable
 import pygame
 from dataclasses import dataclass
 
-from ..interfaces import IAnimationSystem, Entity
+from interfaces import IAnimationSystem, Entity
 
 @dataclass
 class AnimationState:
