@@ -102,7 +102,7 @@ class Player(Entity):
 
         # 3. 只有在可移动的状态下，才处理移动逻辑
         # C++代码是在特定状态下，直接修改位置
-        if self.state in ["idle", "walk", "jump_land"]:
+        if self.state in ["idle", "walk", "jump_land", "jump_start", "jump_loop"]:
             is_moving = False
             if keys[pygame.K_a]:
                 self.position.x -= self.run_speed # 直接修改位置
