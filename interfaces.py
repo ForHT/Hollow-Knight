@@ -27,7 +27,7 @@ class EntityType(Enum):
 # ============= 核心接口定义 =============
 class Entity:
     """所有游戏实体的基类"""
-    def __init__(self, entity_type: EntityType, pos: Vector2, size: tuple[int, int], ground_y: float):
+    def __init__(self, pos: Vector2, size: tuple[int, int], ground_y: float = 0, entity_type: Optional[EntityType] = None):
         self.entity_type = entity_type
         self.current_animation: Optional[str] = None
         # 物理属性
@@ -55,9 +55,10 @@ class Entity:
         # 基类中的实现可以为空，或者只做一个简单的状态赋值
         self.state = new_state
         
-    def update(self, dt: float, **kwargs):
+    def update(self, *args, **kwargs):
         """更新实体状态"""
-        raise NotImplementedError
+        # 不再强制要求实现，因为像Effect这样的简单实体可能不需要update
+        pass
 
     def draw(self, surface: pygame.Surface, camera_offset: Vector2):
         """绘制实体"""

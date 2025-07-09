@@ -19,7 +19,12 @@ PLAYER_STATE_MACHINE = {
 
 class Player(Entity):
     def __init__(self, pos: Vector2, size: tuple[int, int]):
-        super().__init__(EntityType.PLAYER, pos, size, PLAYER_GROUND_Y)
+        super().__init__(
+            pos=pos, 
+            size=size, 
+            ground_y=PLAYER_GROUND_Y, 
+            entity_type=EntityType.PLAYER
+        )
         
         self.state = "idle" # 初始状态
         
@@ -28,7 +33,7 @@ class Player(Entity):
         self.health = self.max_health
         self.attack_power = PLAYER_ATTACK_POWER
         self.body_damage = 0
-
+        
         # 移动 (不再需要硬编码的速度)
         self.run_speed = PLAYER_RUN_SPEED
         self.jump_velocity_val = PLAYER_JUMP_VELOCITY
@@ -43,6 +48,8 @@ class Player(Entity):
         # 攻击
         self.attack_cooldown_max = 30
         self.attack_cooldown = 0
+        self.attack_combo_window_duration = 20 # 连击窗口持续帧数
+        self.attack_combo_window_timer = 0
         # self.attack_timer is no longer needed
 
         # 无敌与受伤
@@ -50,13 +57,13 @@ class Player(Entity):
         self.invincible_timer = 0
         self.hurt_duration_frames = 5
         self.hurt_timer = 0
-        
+
         self.was_on_ground = True # 用于检测落地瞬间
 
     def set_state(self, new_state: str):
         """设置玩家状态，会检查状态转换是否合法。"""
-        # 总是允许从任何状态转换到受伤或死亡
-        if new_state in ["damage", "dead"]:
+        # 总是允许从任何状态转换到受伤、死亡或连击准备状态
+        if new_state in ["damage", "dead", "ready_to_combo"]:
             if self.state != new_state:
                 # print(f"Player state changed to: {new_state}") # For debugging
                 self.state = new_state
@@ -80,14 +87,21 @@ class Player(Entity):
             return
         
         # 1. 优先处理攻击、冲刺等会打断其他动作的输入
-        if keys[pygame.K_j] and self.attack_cooldown <= 0:
-            if keys[pygame.K_w]:
-                self.attack_up()
-            elif keys[pygame.K_s] and not self.on_ground:
-                self.attack_down()
-            else:
-                self.attack()
-            return
+        if keys[pygame.K_j]:
+            # 优先检查连击，可以无视攻击冷却
+            if self.attack_combo_window_timer > 0 and not keys[pygame.K_w] and not (keys[pygame.K_s] and not self.on_ground):
+                self.attack2()
+                return
+
+            # 如果不处于连击状态，则检查冷却
+            if self.attack_cooldown <= 0:
+                if keys[pygame.K_w]:
+                    self.attack_up()
+                elif keys[pygame.K_s] and not self.on_ground:
+                    self.attack_down()
+                else:
+                    self.attack1()
+                return
 
         if keys[pygame.K_l] and self.dash_cooldown <= 0 and self.state != 'dash':
             self.dash()
@@ -125,9 +139,15 @@ class Player(Entity):
         self.on_ground = False
         self.set_state("jump_start")
 
-    def attack(self):
-        self.set_state("attack")
+    def attack1(self):
+        self.set_state("attack1")
         self.attack_cooldown = self.attack_cooldown_max
+        self.attack_combo_window_timer = 0 # 重置连击窗口
+
+    def attack2(self):
+        self.set_state("attack2")
+        self.attack_cooldown = self.attack_cooldown_max
+        self.attack_combo_window_timer = 0 # 消耗连击窗口
 
     def attack_up(self):
         self.set_state("attack_up")
@@ -145,6 +165,7 @@ class Player(Entity):
         self.dash_timer = self.dash_duration
         self.dash_cooldown = self.dash_cooldown_max
         self.invincible_timer = self.dash_duration
+        self.attack_combo_window_timer = 0 # 冲刺取消连击
 
     def update(self, keys, animation_system): # 接收 animation_system
         # 1. 递减计时器
@@ -152,6 +173,7 @@ class Player(Entity):
         if self.hurt_timer > 0: self.hurt_timer -= 1
         if self.dash_cooldown > 0: self.dash_cooldown -= 1
         if self.attack_cooldown > 0: self.attack_cooldown -= 1
+        if self.attack_combo_window_timer > 0: self.attack_combo_window_timer -= 1
         if self.dash_timer > 0: self.dash_timer -= 1
 
         # 2. 处理输入（会改变状态和位置）
@@ -171,7 +193,12 @@ class Player(Entity):
             else:
                 self.velocity.y = 0 # 冲刺时无重力
         
-        # 5. 处理非输入驱动的状态转换（如落地）
+        # 5. 处理非输入驱动的状态转换（如落地、连击）
+        # 检查是否进入连击准备状态
+        if self.state == "ready_to_combo":
+            self.state = "idle"
+            self.attack_combo_window_timer = self.attack_combo_window_duration
+
         # 检测落地瞬间
         is_landing = self.on_ground and not self.was_on_ground
         if is_landing and self.state in ["jump_loop", "jump_start"]:
@@ -181,17 +208,21 @@ class Player(Entity):
         self.was_on_ground = self.on_ground
 
         # 6. 受伤状态处理
-        if self.state == "damage" and self.hurt_timer <= 0:
-            self.set_state("idle")
-
+        # 移除这个硬编码的逻辑。现在，受伤动画的结束
+        # 将完全由 animation_data.py 中的 next_state 机制控制。
+        # hurt_timer 只负责锁定输入，不负责改变状态。
+        # if self.state == "damage" and self.hurt_timer <= 0:
+        #     self.set_state("idle")
+        
     def take_damage(self, amount: int):
         if self.invincible_timer <= 0:
             self.health -= amount
             self.invincible_timer = self.invincible_duration_frames
             self.hurt_timer = self.hurt_duration_frames
             self.set_state("damage")
+            self.attack_combo_window_timer = 0 # 受伤取消连击
             # 恢复C++中的速度脉冲逻辑以实现明显的击退效果
-            self.velocity.x = 5 if self.facing_right else -5 
+            self.velocity.x = -50 if self.facing_right else 50 
             self.velocity.y = -20 # 稍微增强向上的力道以获得更好的手感
             print(f"Player took {amount} damage, health: {self.health}")
             if self.health <= 0:
@@ -203,7 +234,7 @@ class Player(Entity):
         
         base_rect = self.hitbox
 
-        if self.state == "attack":
+        if self.state == "attack1" or self.state == "attack2":
             hitbox = Rect(0, 0, 100, 80)
             if self.facing_right:
                 hitbox.midleft = base_rect.midright
@@ -234,7 +265,7 @@ class Player(Entity):
 
 class Effect(Entity):
     def __init__(self, pos: Vector2, size: tuple[int, int] = (0, 0)):
-        super().__init__(EntityType.EFFECT, pos, size, 0)
+        super().__init__(pos, size, entity_type=EntityType.EFFECT)
         self.state = "dash_effect"
     
     def update(self, *args, **kwargs):

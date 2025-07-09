@@ -5,9 +5,9 @@ from typing import Optional
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
-from core.animation_system import AnimationSystem
+from core.animation_system import AnimationSystem, VFXManager
 from interfaces import Entity, EntityType, Vector2, GameState
-from config.animation_data import PLAYER_ANIMATIONS
+from config.animation_data import PLAYER_ANIMATIONS, EFFECT_ANIMATIONS
 from configs import FPS, SCREEN_WIDTH, SCREEN_HEIGHT, PLAYER_GROUND_Y
 from systems.combat import CombatSystem
 from systems.physics import PhysicsSystem
@@ -51,10 +51,12 @@ quit_button = Button(SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2 + 100, 300, 80, "Quit
 # --- 系统初始化 ---
 animation_system = AnimationSystem()
 physics_system = PhysicsSystem(screen.get_rect())
-combat_system = CombatSystem(physics_system)
+vfx_manager = VFXManager(animation_system)
+combat_system = CombatSystem(physics_system, vfx_manager)
 
 # 使用新的加载方法
 animation_system.load_animations(PLAYER_ANIMATIONS)
+animation_system.load_animations(EFFECT_ANIMATIONS)
 
 # --- 实体变量 ---
 player: Optional[Player] = None
@@ -109,20 +111,28 @@ while running:
                     running = False
 
     # --- 逻辑更新 ---
-    if game_state == GameState.PLAYING:
-        if player and boss: # 确保实体已创建
-            keys = pygame.key.get_pressed()
-            player.update(keys, animation_system)
-            boss.update(player.position)
-            physics_system.update()
-            combat_system.update(player, [boss])
-            
-            animation_system.play_animation(player, player.state)
-            animation_system.update(dt)
+    if game_state == GameState.PLAYING and player and boss:
+        keys = pygame.key.get_pressed()
+        player.update(keys, animation_system)
+        boss.update(player.position)
+        physics_system.update()
+        combat_system.update(player, [boss])
+        
+        animation_system.play_animation(player, player.state)
+        # 更新动画系统并生成特效
+        effects_to_spawn = animation_system.update(dt)
+        for effect_data in effects_to_spawn:
+            vfx_manager.create_effect(
+                pos=effect_data["pos"], 
+                animation_name=effect_data["name"],
+                facing_right=effect_data["facing_right"]
+            )
+        
+        vfx_manager.update(dt)
 
-            if player.health <= 0:
-                game_state = GameState.GAME_OVER
-            elif boss.health <= 0:
+        if player.health <= 0:
+            game_state = GameState.GAME_OVER
+            if boss.health <= 0:
                 game_state = GameState.VICTORY
 
     # --- 绘制 ---
@@ -130,23 +140,23 @@ while running:
     
     if game_state == GameState.PLAYING:
         if player and boss: # 确保实体已创建才能绘制
-            # 玩家绘制与闪烁效果
-            if player.invincible_timer > 0 and (pygame.time.get_ticks() // 80) % 2 == 0:
-                pass # 闪烁期间不绘制
-            else:
-                current_frame = animation_system.get_current_frame(player)
-                if current_frame:
-                    frame_rect = current_frame.get_rect()
-                    frame_rect.midbottom = (int(player.position.x), int(player.position.y))
-                    screen.blit(current_frame, frame_rect.topleft)
+            # 玩家绘制
+            current_frame = animation_system.get_current_frame(player)
+            if current_frame:
+                frame_rect = current_frame.get_rect()
+                frame_rect.midbottom = (int(player.position.x), int(player.position.y))
+                screen.blit(current_frame, frame_rect.topleft)
             
             boss.draw(screen, Vector2(0,0))
             draw_player_health(player)
             
-            if "attack" in player.state:
-                player_attack = player.get_attack_hitbox()
-                if player_attack:
-                    pygame.draw.rect(screen, (255, 255, 0), player_attack, 2)
+            # 绘制特效
+            vfx_manager.draw(screen)
+
+            # if "attack" in player.state:
+            #     player_attack = player.get_attack_hitbox()
+            #     if player_attack:
+            #         pygame.draw.rect(screen, (255, 255, 0), player_attack, 2)
 
     elif game_state == GameState.START_SCREEN:
         title_text = font_large.render("Hollow Knight", True, (255, 255, 255))

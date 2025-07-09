@@ -2,14 +2,16 @@
 import pygame
 from typing import List
 
-from interfaces import ICombatSystem, Entity
+from interfaces import ICombatSystem, Entity, Vector2
 from gameplay.player import Player
 from gameplay.boss import Boss
+from core.animation_system import VFXManager
 from .physics import PhysicsSystem
 
 class CombatSystem(ICombatSystem):
-    def __init__(self, physics_system: PhysicsSystem):
+    def __init__(self, physics_system: PhysicsSystem, vfx_manager: VFXManager):
         self.physics_system = physics_system
+        self.vfx_manager = vfx_manager
 
     def update(self, player: Player, enemies: List[Boss]):
         if player.state == "dead":
@@ -32,6 +34,14 @@ class CombatSystem(ICombatSystem):
             player_attack_box = player.get_attack_hitbox()
             if boss.invincible_timer <= 0 and player_attack_box and player_attack_box.colliderect(boss.hitbox):
                 boss.take_damage(player.attack_power)
+                
+                # 创建命中特效
+                self.vfx_manager.create_effect(
+                    pos=Vector2(boss.hitbox.center), 
+                    animation_name="hit_effect",
+                    facing_right=player.facing_right
+                )
+
                 # 成功下劈后触发pogo弹跳
                 if player.state == "attack_down":
                     player.pogo_bounce()

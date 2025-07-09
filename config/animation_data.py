@@ -47,7 +47,13 @@ PLAYER_ANIMATIONS = {
             "frame_intervals": [1, 1, 1, 3, 3],
             "displacements": [(-45, 0), (-45, 0), (-45, 0), (-45, 0), (-45, 0)],
             "loop": False,
-            "next_state": "idle"
+            "next_state": "idle",
+            "effects": [
+                { "name": "dash_effect", "frame": 0, "offset": {"x": 20, "y": -40} },
+                { "name": "dash_effect", "frame": 1, "offset": {"x": 24, "y": -40} },
+                { "name": "dash_effect", "frame": 2, "offset": {"x": 28, "y": -40} },
+                { "name": "dash_effect", "frame": 3, "offset": {"x": 32, "y": -40} }
+            ]
         },
         "right": {
             "path_template": "resource/img/hollow knight/DashR/{}.PNG",
@@ -55,17 +61,26 @@ PLAYER_ANIMATIONS = {
             "frame_intervals": [1, 1, 1, 3, 3],
             "displacements": [(45, 0), (45, 0), (45, 0), (45, 0), (45, 0)],
             "loop": False,
-            "next_state": "idle"
+            "next_state": "idle",
+            "effects": [
+                { "name": "dash_effect", "frame": 0, "offset": {"x": -20, "y": -40} },
+                { "name": "dash_effect", "frame": 1, "offset": {"x": -24, "y": -40} },
+                { "name": "dash_effect", "frame": 2, "offset": {"x": -28, "y": -40} },
+                { "name": "dash_effect", "frame": 3, "offset": {"x": -32, "y": -40} }
+            ]
         }
     },
-    "attack": {
+    "attack1": {
         "left": {
             "path_template": "resource/img/hollow knight/Attack/Attack/1/{}.PNG",
             "frame_count": 5,
             "frame_intervals": [2, 1, 2, 2, 2],
             "displacements": [(0, 0), (0, 0), (0, 0), (-2, 0), (0, 0)],
             "loop": False,
-            "next_state": "idle"
+            "next_state": "ready_to_combo",
+            "effects": [
+                { "name": "attack1_slash_effect", "frame": 0, "offset": {"x": -50, "y": 0} }
+            ]
         },
         "right": {
             "path_template": "resource/img/hollow knight/AttackR/Attack/1/{}.PNG",
@@ -73,7 +88,34 @@ PLAYER_ANIMATIONS = {
             "frame_intervals": [2, 1, 2, 2, 2],
             "displacements": [(0, 0), (0, 0), (0, 0), (2, 0), (0, 0)],
             "loop": False,
-            "next_state": "idle"
+            "next_state": "ready_to_combo",
+            "effects": [
+                { "name": "attack1_slash_effect", "frame": 0, "offset": {"x": 50, "y": 0} }
+            ]
+        }
+    },
+    "attack2": {
+        "left": {
+            "path_template": "resource/img/hollow knight/Attack/Attack/2/{}.PNG",
+            "frame_count": 5,
+            "frame_intervals": [2, 1, 2, 2, 2],
+            "displacements": [(0, 0), (0, 0), (0, 0), (-2, 0), (0, 0)],
+            "loop": False,
+            "next_state": "idle",
+             "effects": [
+                { "name": "attack2_slash_effect", "frame": 0, "offset": {"x": -50, "y": 0} }
+            ]
+        },
+        "right": {
+            "path_template": "resource/img/hollow knight/AttackR/Attack/2/{}.PNG",
+            "frame_count": 5,
+            "frame_intervals": [2, 1, 2, 2, 2],
+            "displacements": [(0, 0), (0, 0), (0, 0), (2, 0), (0, 0)],
+            "loop": False,
+            "next_state": "idle",
+             "effects": [
+                { "name": "attack2_slash_effect", "frame": 0, "offset": {"x": 50, "y": 0} }
+            ]
         }
     },
     "attack_up": {
@@ -83,7 +125,10 @@ PLAYER_ANIMATIONS = {
             "frame_intervals": [2, 2, 2, 2, 2],
             "displacements": [(0, 0)] * 5,
             "loop": False,
-            "next_state": "idle"
+            "next_state": "idle",
+            "effects": [
+                { "name": "attack_up_slash_effect", "frame": 0, "offset": {"x": 0, "y": -50} }
+            ]
         },
         "right": {
             "path_template": "resource/img/hollow knight/AttackR/AttackUp/{}.PNG",
@@ -91,7 +136,10 @@ PLAYER_ANIMATIONS = {
             "frame_intervals": [2, 2, 2, 2, 2],
             "displacements": [(0, 0)] * 5,
             "loop": False,
-            "next_state": "idle"
+            "next_state": "idle",
+            "effects": [
+                { "name": "attack_up_slash_effect", "frame": 0, "offset": {"x": 0, "y": -50} }
+            ]
         }
     },
     "attack_down": {
@@ -101,7 +149,10 @@ PLAYER_ANIMATIONS = {
             "frame_intervals": [2, 2, 2, 2, 2],
             "displacements": [(0, 0)] * 5,
             "loop": False,
-            "next_state": "idle"
+            "next_state": "idle",
+            "effects": [
+                { "name": "attack_down_slash_effect", "frame": 0, "offset": {"x": 0, "y": 50} }
+            ]
         },
         "right": {
             "path_template": "resource/img/hollow knight/AttackR/AttackDown/{}.PNG",
@@ -109,7 +160,10 @@ PLAYER_ANIMATIONS = {
             "frame_intervals": [2, 2, 2, 2, 2],
             "displacements": [(0, 0)] * 5,
             "loop": False,
-            "next_state": "idle"
+            "next_state": "idle",
+            "effects": [
+                { "name": "attack_down_slash_effect", "frame": 0, "offset": {"x": 0, "y": 50} }
+            ]
         }
     },
     "jump_start": {
@@ -166,20 +220,141 @@ PLAYER_ANIMATIONS = {
     },
      "damage": {
         "left": {
-            "path_template": "resource/img/hollow knight/Damage/{}.PNG",
+            "path_template": "resource/img/hollow knight/Damage/{}.png", # 修正为不带前导0的动作动画
             "frame_count": 6,
             "frame_intervals": [4, 4, 4, 4, 4, 4],
             "displacements": [(0, 0)] * 6, # 击退效果由速度脉冲处理，dmove清零
             "loop": False,
-            "next_state": "idle"
+            "next_state": "idle",
+            "effects": [
+                { "name": "player_hurt_effect", "frame": 0, "offset": {"x": 0, "y": -50} }
+            ]
         },
         "right": {
-            "path_template": "resource/img/hollow knight/DamageR/{}.PNG",
+            "path_template": "resource/img/hollow knight/DamageR/{}.png", # 修正为不带前导0的动作动画
             "frame_count": 6,
             "frame_intervals": [4, 4, 4, 4, 4, 4],
             "displacements": [(0, 0)] * 6, # 击退效果由速度脉冲处理，dmove清零
             "loop": False,
-            "next_state": "idle"
+            "next_state": "idle",
+            "effects": [
+                { "name": "player_hurt_effect", "frame": 0, "offset": {"x": 0, "y": -50} }
+            ]
+        }
+    }
+}
+
+EFFECT_ANIMATIONS = {
+    "player_hurt_effect": {
+        "left": {
+            "path_template": "resource/img/hollow knight/Damage/0{}.png", # 修正路径格式
+            "frame_count": 3,
+            "frame_intervals": [3, 3, 3],
+            "displacements": [(0, 0)] * 3,
+            "loop": False,
+        },
+        "right": {
+            "path_template": "resource/img/hollow knight/Damage/0{}.png", # 修正路径格式
+            "frame_count": 3,
+            "frame_intervals": [3, 3, 3],
+            "displacements": [(0, 0)] * 3,
+            "loop": False,
+        }
+    },
+    "dash_effect": {
+        "left": {
+            "path_template": "resource/img/hollow knight/DashEffect/{}.png",
+            "frame_count": 4,
+            "frame_intervals": [4, 4, 4, 4],
+            "displacements": [(0, 0)] * 4,
+            "loop": False
+        },
+        "right": {
+            "path_template": "resource/img/hollow knight/DashEffectR/{}.png",
+            "frame_count": 4,
+            "frame_intervals": [4, 4, 4, 4],
+            "displacements": [(0, 0)] * 4,
+            "loop": False
+        }
+    },
+    "attack1_slash_effect": {
+        "left": {
+            "path_template": "resource/img/hollow knight/Attack/Attack/1/0{}.png",
+            "frame_count": 2,
+            "frame_intervals": [3, 3],
+            "displacements": [(0, 0)] * 2,
+            "loop": False
+        },
+        "right": {
+            "path_template": "resource/img/hollow knight/AttackR/Attack/1/0{}.png",
+            "frame_count": 2,
+            "frame_intervals": [3, 3],
+            "displacements": [(0, 0)] * 2,
+            "loop": False
+        }
+    },
+    "attack2_slash_effect": {
+        "left": {
+            "path_template": "resource/img/hollow knight/Attack/Attack/2/0{}.png",
+            "frame_count": 2,
+            "frame_intervals": [3, 3],
+            "displacements": [(0, 0)] * 2,
+            "loop": False
+        },
+        "right": {
+            "path_template": "resource/img/hollow knight/AttackR/Attack/2/0{}.png",
+            "frame_count": 2,
+            "frame_intervals": [3, 3],
+            "displacements": [(0, 0)] * 2,
+            "loop": False
+        }
+    },
+    "attack_up_slash_effect": {
+        "left": {
+            "path_template": "resource/img/hollow knight/Attack/AttackUp/0{}.png",
+            "frame_count": 2,
+            "frame_intervals": [3, 3],
+            "displacements": [(0, 0)] * 2,
+            "loop": False
+        },
+        "right": {
+            "path_template": "resource/img/hollow knight/AttackR/AttackUp/0{}.png",
+            "frame_count": 2,
+            "frame_intervals": [3, 3],
+            "displacements": [(0, 0)] * 2,
+            "loop": False
+        }
+    },
+    "attack_down_slash_effect": {
+        "left": {
+            "path_template": "resource/img/hollow knight/Attack/AttackDown/0{}.png",
+            "frame_count": 2,
+            "frame_intervals": [3, 3],
+            "displacements": [(0, 0)] * 2,
+            "loop": False
+        },
+        "right": {
+            "path_template": "resource/img/hollow knight/AttackR/AttackDown/0{}.png",
+            "frame_count": 2,
+            "frame_intervals": [3, 3],
+            "displacements": [(0, 0)] * 2,
+            "loop": False
+        }
+    },
+    "hit_effect": {
+        "left": {
+            "path_template": "resource/img/hollow knight/AttackEffect/Attack/0{}.png",
+            "frame_count": 5,
+            "frame_intervals": [3, 3, 3, 3, 3],
+            "displacements": [(0, 0)] * 5,
+            "loop": False
+        },
+        "right": {
+            "path_template": "resource/img/hollow knight/AttackEffect/AttackR/0{}.png",
+            "frame_count": 5,
+            "frame_intervals": [3, 3, 3, 3, 3],
+            "displacements": [(0, 0)] * 5,
+            "loop": False
         }
     }
 }

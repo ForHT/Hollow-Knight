@@ -11,7 +11,12 @@ from configs import (
 
 class Boss(Entity):
     def __init__(self, pos: Vector2, size: tuple[int, int]):
-        super().__init__(EntityType.BOSS, pos, size, ENEMY_GROUND_Y)
+        super().__init__(
+            pos=pos, 
+            size=size, 
+            ground_y=ENEMY_GROUND_Y,
+            entity_type=EntityType.BOSS
+        )
         
         self.max_health = BOSS_HEALTH
         self.health = self.max_health
