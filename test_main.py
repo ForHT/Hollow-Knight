@@ -1,6 +1,8 @@
 import pygame
 import sys
 import os
+from typing import Optional
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 from core.animation_system import AnimationSystem
@@ -12,6 +14,24 @@ from systems.physics import PhysicsSystem
 from gameplay.player import Player, Effect
 from gameplay.boss import Boss
 
+class Button:
+    """一个简单的UI按钮类"""
+    def __init__(self, x, y, width, height, text, color, text_color):
+        self.rect = pygame.Rect(x, y, width, height)
+        self.text = text
+        self.color = color
+        self.text_color = text_color
+        self.font = pygame.font.Font(None, 50)
+
+    def draw(self, surface):
+        pygame.draw.rect(surface, self.color, self.rect)
+        text_surface = self.font.render(self.text, True, self.text_color)
+        text_rect = text_surface.get_rect(center=self.rect.center)
+        surface.blit(text_surface, text_rect)
+
+    def is_clicked(self, pos):
+        return self.rect.collidepoint(pos)
+
 # 初始化 Pygame
 pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -22,7 +42,13 @@ running = True
 pygame.display.set_caption("Hollow Knight Clone")
 game_state = GameState.START_SCREEN
 
-# 创建动画系统
+# --- UI 元素 ---
+font_large = pygame.font.Font(None, 120)
+start_button = Button(SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2, 300, 80, "Start Game", (100, 100, 100), (255, 255, 255))
+restart_button = Button(SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2, 300, 80, "Restart", (100, 100, 100), (255, 255, 255))
+quit_button = Button(SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2 + 100, 300, 80, "Quit", (100, 100, 100), (255, 255, 255))
+
+# --- 系统初始化 ---
 animation_system = AnimationSystem()
 physics_system = PhysicsSystem(screen.get_rect())
 combat_system = CombatSystem(physics_system)
@@ -30,82 +56,119 @@ combat_system = CombatSystem(physics_system)
 # 使用新的加载方法
 animation_system.load_animations(PLAYER_ANIMATIONS)
 
-# 初始化实体
-player: Player = Player(pos=Vector2(200, PLAYER_GROUND_Y), size=(50, 80))
-# dash_effect_entity 不再需要，特效将由新的系统处理
-boss: Boss = Boss(pos=Vector2(800, 585), size=(100, 150))
-entities: list = [player, boss]
-for entity in entities:
-    physics_system.add_entity(entity) 
+# --- 实体变量 ---
+player: Optional[Player] = None
+boss: Optional[Boss] = None
+entities: list = []
 
-# """待封装：加载实体资源"""  -> 已由AnimationSystem处理
-# animation_system.load_animations_from_config("player", PLAYER_ANIMATIONS, ANIMATION_PATHS["player"])
-# animation_system.load_animations_from_config("", EFFECT_ANIMATIONS, ANIMATION_PATHS["effects"])
+def reset_game():
+    """重置游戏状态，重新初始化所有实体。"""
+    global player, boss, entities
+    
+    physics_system.entities.clear()
 
-"""待封装：绘制玩家的血量。"""
-def draw_player_health(player : Player):
+    player = Player(pos=Vector2(200, PLAYER_GROUND_Y), size=(50, 80))
+    boss = Boss(pos=Vector2(800, 585), size=(100, 150))
+    entities = [player, boss]
+
+    for entity in entities:
+        physics_system.add_entity(entity)
+
+def draw_player_health(player_instance: Player):
+        """待封装：绘制玩家的血量。"""
+        if not player_instance: return
         health_icon_radius = 15
         padding = 10
         start_x = 30
         start_y = 30
-        for i in range(player.max_health):
+        for i in range(player_instance.max_health):
             x = start_x + i * (2 * health_icon_radius + padding)
-            # 先绘制空的血槽
             pygame.draw.circle(screen, (50, 50, 50), (x, start_y), health_icon_radius, 2)
-            if i < player.health:
-                # 如果有血量则填充
+            if i < player_instance.health:
                 pygame.draw.circle(screen, (255, 255, 255), (x, start_y), health_icon_radius)
 
-# 设置游戏状态
-game_state = GameState.PLAYING
-
+# --- 主循环 ---
 while running:
     dt = clock.tick(FPS) / 1000.0
+    
+    # --- 事件处理 ---
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            pygame.quit()
-            exit()
-    # --- Updates based on state ---
-    if game_state == GameState.PLAYING:
-        keys = pygame.key.get_pressed()
-        player.update(keys, animation_system)
-        boss.update(player.position)
-        physics_system.update()
-        combat_system.update(player, [boss])
+            running = False
         
-        # 更新动画
-        animation_system.play_animation(player, player.state)
-        animation_system.update(dt)
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if game_state == GameState.START_SCREEN:
+                if start_button.is_clicked(event.pos):
+                    reset_game()
+                    game_state = GameState.PLAYING
+            elif game_state in [GameState.GAME_OVER, GameState.VICTORY]:
+                if restart_button.is_clicked(event.pos):
+                    reset_game()
+                    game_state = GameState.PLAYING
+                if quit_button.is_clicked(event.pos):
+                    running = False
 
-        if player.health <= 0:
-            game_state = GameState.GAME_OVER
-        elif boss.health <= 0:
-            game_state = GameState.VICTORY
+    # --- 逻辑更新 ---
+    if game_state == GameState.PLAYING:
+        if player and boss: # 确保实体已创建
+            keys = pygame.key.get_pressed()
+            player.update(keys, animation_system)
+            boss.update(player.position)
+            physics_system.update()
+            combat_system.update(player, [boss])
+            
+            animation_system.play_animation(player, player.state)
+            animation_system.update(dt)
 
-    # 绘制
+            if player.health <= 0:
+                game_state = GameState.GAME_OVER
+            elif boss.health <= 0:
+                game_state = GameState.VICTORY
+
+    # --- 绘制 ---
     screen.fill((0, 0, 0))
     
-    # 新的绘制逻辑
-    # 1. 玩家绘制与闪烁效果
-    if player.invincible_timer > 0 and (pygame.time.get_ticks() // 80) % 2 == 0:
-        # 在无敌期间，每隔80毫秒切换一次显示状态，实现闪烁
-        pass
-    else:
-        current_frame = animation_system.get_current_frame(player)
-        if current_frame:
-            # Correctly calculate the top-left position for blitting
-            frame_rect = current_frame.get_rect()
-            frame_rect.midbottom = (int(player.position.x), int(player.position.y))
-            screen.blit(current_frame, frame_rect.topleft)
-    
     if game_state == GameState.PLAYING:
-        # player.draw(screen, Vector2(0,0)) # 旧的调试绘制
-        boss.draw(screen, Vector2(0,0)) # Keep boss rect for now
-        draw_player_health(player)
-        # 绘制调试用的攻击框
-        if "attack" in player.state:
-            player_attack = player.get_attack_hitbox()
-            if player_attack:
-                pygame.draw.rect(screen, (255, 255, 0), player_attack, 2)
-    
+        if player and boss: # 确保实体已创建才能绘制
+            # 玩家绘制与闪烁效果
+            if player.invincible_timer > 0 and (pygame.time.get_ticks() // 80) % 2 == 0:
+                pass # 闪烁期间不绘制
+            else:
+                current_frame = animation_system.get_current_frame(player)
+                if current_frame:
+                    frame_rect = current_frame.get_rect()
+                    frame_rect.midbottom = (int(player.position.x), int(player.position.y))
+                    screen.blit(current_frame, frame_rect.topleft)
+            
+            boss.draw(screen, Vector2(0,0))
+            draw_player_health(player)
+            
+            if "attack" in player.state:
+                player_attack = player.get_attack_hitbox()
+                if player_attack:
+                    pygame.draw.rect(screen, (255, 255, 0), player_attack, 2)
+
+    elif game_state == GameState.START_SCREEN:
+        title_text = font_large.render("Hollow Knight", True, (255, 255, 255))
+        title_rect = title_text.get_rect(center=(SCREEN_WIDTH/2, SCREEN_HEIGHT/2 - 100))
+        screen.blit(title_text, title_rect)
+        start_button.draw(screen)
+
+    elif game_state == GameState.GAME_OVER:
+        game_over_text = font_large.render("Game Over", True, (255, 0, 0))
+        text_rect = game_over_text.get_rect(center=(SCREEN_WIDTH/2, SCREEN_HEIGHT/2 - 100))
+        screen.blit(game_over_text, text_rect)
+        restart_button.draw(screen)
+        quit_button.draw(screen)
+
+    elif game_state == GameState.VICTORY:
+        victory_text = font_large.render("You Win!", True, (255, 215, 0))
+        text_rect = victory_text.get_rect(center=(SCREEN_WIDTH/2, SCREEN_HEIGHT/2 - 100))
+        screen.blit(victory_text, text_rect)
+        restart_button.draw(screen)
+        quit_button.draw(screen)
+
     pygame.display.flip()
+
+pygame.quit()
+sys.exit()
