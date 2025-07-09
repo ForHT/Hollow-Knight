@@ -2,42 +2,83 @@
 物理系统
 负责处理游戏中的物理相关计算
 """
-from typing import List, Dict, Set
-from ..interfaces import IPhysicsSystem, Entity, Vector2, Rectangle
+import pygame
+from typing import List
+from ..config import GRAVITY, SCREEN_RECT, FPS
+from ..interfaces import IPhysicsSystem, Entity, Vector2, Rect
 
 class PhysicsSystem(IPhysicsSystem):
-    def __init__(self):
-        self.entities: Set[Entity] = set()
-        self.gravity = 9.8
+    """
+    一个实现了欧拉积分的平台跳跃物理系统。
+    负责处理重力、运动、以及与环境的碰撞。
+    """
+    def __init__(self, screen_rect: Rect, gravity: float = GRAVITY):
+        """
+        初始化物理系统。
+        param screen_rect: 游戏窗口的Rect，用于动态边界检测。
+        param gravity: 全局重力加速度值。
+        """
+        self.entities: list[Entity] = []
+        self.gravity_force = Vector2(0, gravity)
+        self.screen_rect = screen_rect # 存储窗口大小
         
     def add_entity(self, entity: Entity) -> None:
-        """添加实体到物理系统"""
-        self.entities.add(entity)
+        """向物理系统注册一个实体"""
+        if entity not in self.entities:
+            self.entities.append(entity)
         
     def remove_entity(self, entity: Entity) -> None:
-        """从物理系统移除实体"""
-        self.entities.remove(entity)
+        """从物理系统移除一个实体"""
+        if entity in self.entities:
+            self.entities.remove(entity)
         
     def update(self, dt: float) -> None:
-        """更新物理状态"""
+        """
+        为所有注册的实体更新一帧的物理状态。
+        param dt: Delta time，上一帧到这一帧的时间（秒）。
+        """
         for entity in self.entities:
-            # 应用重力
-            entity.velocity.y += self.gravity * dt
+            if entity.state == AnimationState.DEAD:
+                continue
+
+            # 1. 应用力
+            entity.acceleration.zero()
+            if entity.state != AnimationState.DASH:
+                entity.acceleration += self.gravity_force
+
+            # 2. 运动学积分
+            entity.velocity.x += entity.acceleration.x * dt
+            entity.velocity.y += entity.acceleration.y * dt * FPS # 使用dt和FPS
+            entity.position += entity.velocity * dt * FPS
+            # 同步hitbox的位置到新的物理位置
+            # 使用 midbottom 来对齐，这样hitbox的尺寸变化不会导致脚底位置移动
+            entity.hitbox.midbottom = entity.position
+
+
+            # 3. 碰撞检测
+            entity.on_ground = False
+
+            # a. 与各自的地面碰撞
+            if entity.hitbox.bottom >= entity.ground_y:
+                entity.hitbox.bottom = entity.ground_y
+                entity.velocity.y = 0
+                entity.on_ground = True
+
+            # b. 与窗口边界碰撞
+            if entity.hitbox.left < self.screen_rect.left:
+                entity.hitbox.left = self.screen_rect.left
+                entity.velocity.x = 0
+            elif entity.hitbox.right > self.screen_rect.right:
+                entity.hitbox.right = self.screen_rect.right
+                entity.velocity.x = 0
             
-            # 更新位置
-            entity.position.x += entity.velocity.x * dt
-            entity.position.y += entity.velocity.y * dt
+            if entity.hitbox.top < self.screen_rect.top:
+                entity.hitbox.top = self.screen_rect.top
+                entity.velocity.y = 0
             
-            # TODO: 添加地面碰撞检测
-            # TODO: 添加墙体碰撞检测
+            # 最终同步物理位置
+            entity.position = Vector2(entity.hitbox.midbottom)
             
     def check_collision(self, entity1: Entity, entity2: Entity) -> bool:
-        """检查两个实体之间是否发生碰撞"""
-        # TODO: 实现AABB碰撞检测
-        rect1 = entity1.hitbox
-        rect2 = entity2.hitbox
-        
-        return (rect1.x < rect2.x + rect2.width and
-                rect1.x + rect1.width > rect2.x and
-                rect1.y < rect2.y + rect2.height and
-                rect1.y + rect1.height > rect2.y) 
+        """检查两个实体之间是否发生碰撞(AABB碰撞检测)"""
+        return entity1.hitbox.colliderect(entity2.hitbox)

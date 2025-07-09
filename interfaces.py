@@ -8,17 +8,9 @@ from dataclasses import dataclass
 from enum import Enum, auto
 
 # ============= 数据类型定义 =============
-@dataclass
-class Vector2:
-    x: float
-    y: float
-
-@dataclass
-class Rectangle:
-    x: float
-    y: float
-    width: float
-    height: float
+# --- 类型别名，使用Pygame内置类型 ---
+Vector2 = pygame.math.Vector2
+Rect = pygame.Rect
 
 class EntityType(Enum):
     PLAYER = auto()
@@ -30,28 +22,54 @@ class AnimationState(Enum):
     IDLE = auto()
     WALK = auto()
     JUMP = auto()
+    FALL = auto()
     ATTACK = auto()
     DASH = auto()
+    HURT = auto()
+    DEAD = auto()
     DAMAGE = auto()
 
 # ============= 核心接口定义 =============
 class Entity:
     """所有游戏实体的基类"""
-    def __init__(self, entity_type: EntityType, position: Vector2):
+    def __init__(self, entity_type: EntityType, pos: Vector2, size: tuple[int, int], ground_y: float):
         self.entity_type = entity_type
-        self.position = position
+
+        # 物理属性
+        self.position = pos  # 代表hitbox的midbottom
         self.velocity = Vector2(0, 0)
-        self.hitbox = Rectangle(0, 0, 0, 0)
-        self.current_animation: Optional[str] = None
+        self.acceleration = Vector2(0, 0)
+        self.hitbox = Rect(0, 0, size[0], size[1])
+        self.hitbox.midbottom = self.position
+        self.on_ground = False
+        self.ground_y = ground_y # 每个实体可以有自己的地面高度
+
+        # 游戏逻辑属性
+        self.state: AnimationState = AnimationState.IDLE
         self.facing_right: bool = True
         
-    def update(self, dt: float) -> None:
+        # 战斗属性
+        self.max_health: int = 1
+        self.health: int = 1
+        self.attack_power: int = 1
+        self.body_damage: int = 1
+        self.invincible_timer: float = 0.0
+        
+    def update(self, dt: float, **kwargs):
         """更新实体状态"""
         raise NotImplementedError
-        
-    def draw(self, surface: pygame.Surface) -> None:
+
+    def draw(self, surface: pygame.Surface, camera_offset: Vector2):
         """绘制实体"""
         raise NotImplementedError
+    
+    def take_damage(self, amount: int):
+        """处理受伤的通用接口"""
+        raise NotImplementedError
+
+    def get_attack_hitbox(self) -> Optional[Rect]:
+        """获取当前攻击的判定框"""
+        return None
 
 class IPhysicsSystem:
     """物理系统接口"""
