@@ -15,6 +15,7 @@ Rect = pygame.Rect
 class EntityType(Enum):
     PLAYER = auto()
     ENEMY = auto()
+    BOSS = auto() # 添加BOSS类型
     PROJECTILE = auto()
     EFFECT = auto()
 
@@ -29,6 +30,16 @@ class AnimationState(Enum):
     DEAD = auto()
     DAMAGE = auto()
 
+    # Boss-specific states
+    B_WALK = auto()
+    B_JUMP = auto()
+    B_DASH =  auto()
+    B_JUMPDASH = auto()
+    B_JUMPFINAL = auto()
+    B_LAND = auto()
+    B_THROWSIDE = auto()
+
+
 # ============= 核心接口定义 =============
 class Entity:
     """所有游戏实体的基类"""
@@ -40,7 +51,7 @@ class Entity:
         self.velocity = Vector2(0, 0)
         self.acceleration = Vector2(0, 0)
         self.hitbox = Rect(0, 0, size[0], size[1])
-        self.hitbox.midbottom = self.position
+        self.hitbox.midbottom = (int(self.position.x), int(self.position.y))
         self.on_ground = False
         self.ground_y = ground_y # 每个实体可以有自己的地面高度
 

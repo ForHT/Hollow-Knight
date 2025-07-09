@@ -4,8 +4,8 @@
 """
 import pygame
 from typing import List
-from ..config import GRAVITY, SCREEN_RECT, FPS
-from ..interfaces import IPhysicsSystem, Entity, Vector2, Rect
+from config import GRAVITY, SCREEN_RECT, FPS
+from interfaces import IPhysicsSystem, Entity, Vector2, Rect, AnimationState
 
 class PhysicsSystem(IPhysicsSystem):
     """
@@ -32,38 +32,40 @@ class PhysicsSystem(IPhysicsSystem):
         if entity in self.entities:
             self.entities.remove(entity)
         
-    def update(self, dt: float) -> None:
+    def update(self) -> None:
         """
-        为所有注册的实体更新一帧的物理状态。
-        param dt: Delta time，上一帧到这一帧的时间（秒）。
+        为所有注册的实体更新一帧的物理状态 (per-frame update).
         """
         for entity in self.entities:
-            if entity.state == AnimationState.DEAD:
-                continue
+            # 冲刺和死亡状态下不受重力影响
+            is_physics_active = entity.state not in [AnimationState.DASH, AnimationState.DEAD]
 
-            # 1. 应用力
-            entity.acceleration.zero()
-            if entity.state != AnimationState.DASH:
-                entity.acceleration += self.gravity_force
+            if is_physics_active:
+                # 1. 应用重力
+                entity.acceleration = self.gravity_force
+            else:
+                entity.acceleration = Vector2(0, 0)
 
-            # 2. 运动学积分
-            entity.velocity.x += entity.acceleration.x * dt
-            entity.velocity.y += entity.acceleration.y * dt * FPS # 使用dt和FPS
-            entity.position += entity.velocity * dt * FPS
+            # 2. 运动学积分 (逐帧更新)
+            # v = v + a
+            entity.velocity.y += entity.acceleration.y
+            # p = p + v
+            entity.position += entity.velocity
+            
             # 同步hitbox的位置到新的物理位置
-            # 使用 midbottom 来对齐，这样hitbox的尺寸变化不会导致脚底位置移动
-            entity.hitbox.midbottom = entity.position
-
+            entity.hitbox.midbottom = (int(entity.position.x), int(entity.position.y))
 
             # 3. 碰撞检测
             entity.on_ground = False
 
             # a. 与各自的地面碰撞
             if entity.hitbox.bottom >= entity.ground_y:
-                entity.hitbox.bottom = entity.ground_y
+                entity.hitbox.bottom = int(entity.ground_y)
                 entity.velocity.y = 0
                 entity.on_ground = True
-
+                if entity.state == AnimationState.FALL:
+                    entity.state = AnimationState.IDLE # 落地后变回站立
+            
             # b. 与窗口边界碰撞
             if entity.hitbox.left < self.screen_rect.left:
                 entity.hitbox.left = self.screen_rect.left

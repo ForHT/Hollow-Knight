@@ -17,8 +17,8 @@ SCREEN_RECT = pygame.Rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
 # ==============================================================================
 # >> 物理与世界常量 (Physics & World Constants)
 # ==============================================================================
-# 全局重力加速度。数值越大，下落越快。0.8是一个很好的初始值。
-GRAVITY = 0.8
+# 全局重力加速度。C++项目中的值为2.5，逐帧累加。
+GRAVITY = 2.5
 
 # 玩家在地面上时，其hitbox.bottom所在的Y坐标
 # 对应C++代码中的: if (player.position.y > 680)
@@ -46,6 +46,15 @@ PLAYER_RUN_SPEED = 10
 # 对应C++代码中的: Player.speed.vy = -43;
 PLAYER_JUMP_VELOCITY = -43
 
+# 玩家冲刺的速度 (像素/帧)
+PLAYER_DASH_SPEED = 45
+
+# 玩家冲刺的持续时间 (帧)
+PLAYER_DASH_DURATION = 9
+
+# 玩家冲刺的冷却时间 (帧)
+PLAYER_DASH_COOLDOWN = 30
+
 
 # ==============================================================================
 # >> Boss 属性 (Boss Attributes)
@@ -58,6 +67,14 @@ BOSS_ATTACK_POWER = 1
 
 # Boss的身体接触对玩家造成的伤害
 BOSS_BODY_DAMAGE = 1
+
+# --- Boss AI Cooldowns (in frames) ---
+BOSS_ACTION_COOLDOWN = 30       # General cooldown between actions
+BOSS_WALK_COOLDOWN = 75
+BOSS_JUMP_COOLDOWN = 60
+BOSS_JUMPDASH_COOLDOWN = 120
+BOSS_DASH_COOLDOWN = 50
+BOSS_JUMPFINAL_COOLDOWN = 240
 
 
 # ==============================================================================

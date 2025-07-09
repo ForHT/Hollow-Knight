@@ -2,7 +2,9 @@
 import pygame
 from typing import List
 
-from ..interfaces import ICombatSystem, Entity, Player, Boss # Assuming Player/Boss are defined in interfaces for type hinting
+from interfaces import ICombatSystem, Entity, AnimationState
+from gameplay.player import Player
+from gameplay.boss import Boss
 from .physics import PhysicsSystem
 
 class CombatSystem(ICombatSystem):
