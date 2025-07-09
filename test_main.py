@@ -4,8 +4,8 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 from core.animation_system import AnimationSystem
-from interfaces import Entity, EntityType, Vector2, GameState, AnimationState
-from config.states import PLAYER_ANIMATIONS, PLAYER_STATE_MACHINE, ANIMATION_PATHS, EFFECT_ANIMATIONS
+from interfaces import Entity, EntityType, Vector2, GameState
+from config.animation_data import PLAYER_ANIMATIONS
 from configs import FPS, SCREEN_WIDTH, SCREEN_HEIGHT, PLAYER_GROUND_Y
 from systems.combat import CombatSystem
 from systems.physics import PhysicsSystem
@@ -27,49 +27,20 @@ animation_system = AnimationSystem()
 physics_system = PhysicsSystem(screen.get_rect())
 combat_system = CombatSystem(physics_system)
 
+# 使用新的加载方法
+animation_system.load_animations(PLAYER_ANIMATIONS)
+
 # 初始化实体
 player: Player = Player(pos=Vector2(200, PLAYER_GROUND_Y), size=(50, 80))
-current_state = AnimationState.IDLE
-dash_effect_entity = Effect(pos=Vector2(player.position.x, player.position.y))
-boss: Boss = Boss(pos=Vector2(800, 585), size=(100, 150))
-entities: list = [player, boss]
+# dash_effect_entity 不再需要，特效将由新的系统处理
+# boss: Boss = Boss(pos=Vector2(800, 585), size=(100, 150))
+entities: list = [player] #, boss]
 for entity in entities:
     physics_system.add_entity(entity) 
 
-"""待封装：加载实体资源""" 
-# 加载所有玩家动画
-for state, config in PLAYER_ANIMATIONS.items():
-    frames_path = ANIMATION_PATHS["player"][state]  # 更新路径获取方式
-    for frame in range(config["frames"]):
-        path = frames_path.format(frame=frame)
-        try:
-            frame_surface = pygame.image.load(path).convert_alpha()
-            animation_system.load_animation(
-                f"player_{state}", 
-                frame_surface, 
-                config["frames"], 
-                config["frame_time"]
-            )
-        except pygame.error as e:
-            print(f"Error loading animation frame: {path}")
-            print(f"Error details: {e}")
-
-# 加载所有特效动画
-for effect, config in EFFECT_ANIMATIONS.items():
-    frames_path = ANIMATION_PATHS["effects"][effect]  # 修改这里，使用正确的路径结构
-    for frame in range(config["frames"]):
-        path = frames_path.format(frame=frame)
-        try:
-            frame_surface = pygame.image.load(path).convert_alpha()
-            animation_system.load_animation(
-                effect,
-                frame_surface, 
-                config["frames"], 
-                config["frame_time"]
-            )
-        except pygame.error as e:
-            print(f"Error loading effect frame: {path}")
-            print(f"Path attempted: {path}")
+# """待封装：加载实体资源"""  -> 已由AnimationSystem处理
+# animation_system.load_animations_from_config("player", PLAYER_ANIMATIONS, ANIMATION_PATHS["player"])
+# animation_system.load_animations_from_config("", EFFECT_ANIMATIONS, ANIMATION_PATHS["effects"])
 
 """待封装：绘制玩家的血量。"""
 def draw_player_health(player : Player):
@@ -94,42 +65,43 @@ while running:
         if event.type == pygame.QUIT:
             pygame.quit()
             exit()
-                # --- Updates based on state ---
+    # --- Updates based on state ---
     if game_state == GameState.PLAYING:
         keys = pygame.key.get_pressed()
-        player.update(keys)
-        dash_effect_entity.position = player.position
-        boss.update(player.position)
+        player.update(keys, animation_system)
+        # boss.update(player.position)
         physics_system.update()
-        combat_system.update(player, [boss])
+        # combat_system.update(player, [boss])
+        
         # 更新动画
-        animation_system.play_animation(player, f"{player.state}".lower(), PLAYER_ANIMATIONS[f"{player.state}".lower()]["loop"])
-        animation_system.play_animation(dash_effect_entity, "dash_effect", EFFECT_ANIMATIONS["dash_effect"]["loop"])
+        animation_system.play_animation(player, player.state)
         animation_system.update(dt)
 
         if player.health <= 0:
             game_state = GameState.GAME_OVER
-        elif boss.health <= 0:
-            game_state = GameState.VICTORY
+        # elif boss.health <= 0:
+        #     game_state = GameState.VICTORY
 
     # 绘制
     screen.fill((0, 0, 0))
+    
+    # 新的绘制逻辑
     current_frame = animation_system.get_current_frame(player)
     if current_frame:
-        screen.blit(current_frame, (player.position.x, player.position.y))
-    current_frame = animation_system.get_current_frame(dash_effect_entity)
-    if current_frame:
-        screen.blit(current_frame, (dash_effect_entity.position.x, dash_effect_entity.position.y))
+        # Correctly calculate the top-left position for blitting
+        frame_rect = current_frame.get_rect()
+        frame_rect.midbottom = (int(player.position.x), int(player.position.y))
+        screen.blit(current_frame, frame_rect.topleft)
     
     if game_state == GameState.PLAYING:
-        for entity in entities:
-            entity.draw(screen, Vector2(0,0))
+        # 保留调试用的绿框
+        player.draw(screen, Vector2(0,0))
+        # boss.draw(screen, Vector2(0,0)) # Keep boss rect for now
         draw_player_health(player)
         # 绘制调试用的攻击框
-        if player.state in [AnimationState.ATTACK, AnimationState.ATTACK_UP, AnimationState.ATTACK_DOWN]:
+        if "attack" in player.state:
             player_attack = player.get_attack_hitbox()
             if player_attack:
                 pygame.draw.rect(screen, (255, 255, 0), player_attack, 2)
     
     pygame.display.flip()
-    sys.exit()

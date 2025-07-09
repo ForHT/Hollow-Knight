@@ -24,28 +24,6 @@ class EntityType(Enum):
     PROJECTILE = auto()
     EFFECT = auto()
 
-class AnimationState(Enum):
-    IDLE = auto()
-    WALK = auto()
-    JUMP = auto()
-    FALL = auto()
-    ATTACK = auto()
-    ATTACK_UP = auto()
-    ATTACK_DOWN = auto()
-    DASH = auto()
-    HURT = auto()
-    DEAD = auto()
-    DAMAGE = auto()
-
-    # Boss专属状态
-    B_WALK = auto()
-    B_JUMP = auto()
-    B_DASH =  auto()
-    B_JUMPDASH = auto()
-    B_JUMPFINAL = auto()
-    B_LAND = auto()
-    B_THROWSIDE = auto()
-
 # ============= 核心接口定义 =============
 class Entity:
     """所有游戏实体的基类"""
@@ -62,7 +40,7 @@ class Entity:
         self.ground_y = ground_y # 每个实体可以有自己的地面高度
 
         # 游戏逻辑属性
-        self.state: AnimationState = AnimationState.IDLE
+        self.state: str = "idle"
         self.facing_right: bool = True
         
         # 战斗属性
@@ -71,6 +49,11 @@ class Entity:
         self.attack_power: int = 1
         self.body_damage: int = 1
         self.invincible_timer: float = 0.0
+        
+    def set_state(self, new_state: str):
+        """设置实体状态的接口，具体实现在子类中。"""
+        # 基类中的实现可以为空，或者只做一个简单的状态赋值
+        self.state = new_state
         
     def update(self, dt: float, **kwargs):
         """更新实体状态"""

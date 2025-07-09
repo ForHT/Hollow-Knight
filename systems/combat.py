@@ -2,7 +2,7 @@
 import pygame
 from typing import List
 
-from interfaces import ICombatSystem, Entity, AnimationState
+from interfaces import ICombatSystem, Entity
 from gameplay.player import Player
 from gameplay.boss import Boss
 from .physics import PhysicsSystem
@@ -12,11 +12,11 @@ class CombatSystem(ICombatSystem):
         self.physics_system = physics_system
 
     def update(self, player: Player, enemies: List[Boss]):
-        if player.state == AnimationState.DEAD:
+        if player.state == "dead":
             return
 
         for boss in enemies:
-            if boss.state == AnimationState.DEAD:
+            if boss.state == "dead":
                 continue
 
             # 1. 玩家受到Boss的身体接触伤害
@@ -33,5 +33,5 @@ class CombatSystem(ICombatSystem):
             if boss.invincible_timer <= 0 and player_attack_box and player_attack_box.colliderect(boss.hitbox):
                 boss.take_damage(player.attack_power)
                 # 成功下劈后触发pogo弹跳
-                if player.state == AnimationState.ATTACK_DOWN:
+                if player.state == "attack_down":
                     player.pogo_bounce()

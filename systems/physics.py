@@ -5,7 +5,7 @@
 import pygame
 from typing import List
 from configs import GRAVITY, SCREEN_RECT, FPS
-from interfaces import IPhysicsSystem, Entity, Vector2, Rect, AnimationState
+from interfaces import IPhysicsSystem, Entity, Vector2, Rect
 
 class PhysicsSystem(IPhysicsSystem):
     """
@@ -38,7 +38,7 @@ class PhysicsSystem(IPhysicsSystem):
         """
         for entity in self.entities:
             # 冲刺和死亡状态下不受重力影响
-            is_physics_active = entity.state not in [AnimationState.DASH, AnimationState.DEAD]
+            is_physics_active = entity.state not in ["dash", "dead"]
 
             if is_physics_active:
                 # 1. 应用重力
@@ -49,8 +49,10 @@ class PhysicsSystem(IPhysicsSystem):
             # 2. 运动学积分 (逐帧更新)
             # v = v + a
             entity.velocity.y += entity.acceleration.y
+            
             # p = p + v
-            entity.position += entity.velocity
+            # 只应用垂直速度；水平移动由动画或实体逻辑直接控制
+            entity.position.y += entity.velocity.y
             
             # 同步hitbox的位置到新的物理位置
             entity.hitbox.midbottom = (int(entity.position.x), int(entity.position.y))
@@ -63,16 +65,15 @@ class PhysicsSystem(IPhysicsSystem):
                 entity.hitbox.bottom = int(entity.ground_y)
                 entity.velocity.y = 0
                 entity.on_ground = True
-                if entity.state == AnimationState.FALL:
-                    entity.state = AnimationState.IDLE # 落地后变回站立
             
             # b. 与窗口边界碰撞
             if entity.hitbox.left < self.screen_rect.left:
                 entity.hitbox.left = self.screen_rect.left
-                entity.velocity.x = 0
+                # 不再干涉速度，只修正位置
+                # entity.velocity.x = 0 
             elif entity.hitbox.right > self.screen_rect.right:
                 entity.hitbox.right = self.screen_rect.right
-                entity.velocity.x = 0
+                # entity.velocity.x = 0
             
             if entity.hitbox.top < self.screen_rect.top:
                 entity.hitbox.top = self.screen_rect.top
