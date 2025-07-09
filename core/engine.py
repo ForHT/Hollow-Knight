@@ -6,7 +6,6 @@ import pygame
 from typing import Dict, Optional
 from game.interfaces import (
     ISceneManager, 
-    IResourceManager, 
     EventManager,
     IPhysicsSystem,
     IAnimationSystem,
@@ -24,7 +23,6 @@ class GameEngine:
         self.clock = pygame.time.Clock()
         # 系统管理器
         self.scene_manager: Optional[ISceneManager] = None
-        self.resource_manager: Optional[IResourceManager] = None
         self.physics_system: Optional[IPhysicsSystem] = None
         self.animation_system: Optional[IAnimationSystem] = None
         self.combat_system: Optional[ICombatSystem] = None

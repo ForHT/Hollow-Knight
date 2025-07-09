@@ -5,7 +5,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 from game.core.animation_system import AnimationSystem
 from game.interfaces import Entity, EntityType, Vector2
-from game.config.states import PLAYER_ANIMATIONS, PLAYER_STATE_MACHINE, ANIMATION_PATHS
+from game.config.states import PLAYER_ANIMATIONS, PLAYER_STATE_MACHINE, ANIMATION_PATHS, EFFECT_ANIMATIONS
 
 # 初始化 Pygame
 pygame.init()
@@ -32,9 +32,27 @@ for state, config in PLAYER_ANIMATIONS.items():
             print(f"Error loading animation frame: {path}")
             print(f"Error details: {e}")
 
-# 创建玩家实体
+# 加载所有特效动画
+for effect, config in EFFECT_ANIMATIONS.items():
+    frames_path = ANIMATION_PATHS["effects"][effect]  # 修改这里，使用正确的路径结构
+    for frame in range(config["frames"]):
+        path = frames_path.format(frame=frame)
+        try:
+            frame_surface = pygame.image.load(path).convert_alpha()
+            animation_system.load_animation(
+                effect,
+                frame_surface, 
+                config["frames"], 
+                config["frame_time"]
+            )
+        except pygame.error as e:
+            print(f"Error loading effect frame: {path}")
+            print(f"Path attempted: {path}")
+
+# 创建玩家实体和特效实体
 player = Entity(EntityType.PLAYER, Vector2(400, 300))
 current_state = "idle"
+dash_effect_entity = Entity(EntityType.EFFECT, Vector2(player.position.x, player.position.y))
 
 # 状态切换函数
 def change_state(new_state: str):
@@ -49,6 +67,16 @@ def change_state(new_state: str):
             config["loop"]
         )
         
+        # 如果是冲刺状态，播放特效动画
+        if new_state == "dash":
+            # 更新特效位置到玩家当前位置
+            dash_effect_entity.position = Vector2(player.position.x, player.position.y)
+            animation_system.play_animation(
+                dash_effect_entity,
+                "dash_effect",
+                EFFECT_ANIMATIONS["dash_effect"]["loop"]  # 使用配置中的loop设置
+            )
+            
         # 检查是否有自动下一个状态
         if not config["loop"] and "next_state" in config:
             # 在动画结束时自动转换到下一个状态

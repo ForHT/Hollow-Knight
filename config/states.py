@@ -50,6 +50,14 @@ PLAYER_ANIMATIONS = {
         "frame_time": 0.06,  # 冲刺动画稍快
         "loop": False,
         "next_state": "idle"
+    },
+   
+}
+EFFECT_ANIMATIONS = {
+    "dash_effect": {
+        "frames": 5,  # 根据实际图片数量调整
+        "frame_time": 0.05,
+        "loop": False
     }
 }
 
@@ -87,7 +95,11 @@ ANIMATION_PATHS = {
         "attack": "assets/sprites/player/attack/normal/{frame}.PNG",
         "attack_up": "assets/sprites/player/attack/up/{frame}.PNG",
         "attack_down": "assets/sprites/player/attack/down/{frame}.PNG",
-        "dash": "assets/sprites/player/dash/{frame}.PNG"
+        "dash": "assets/sprites/player/dash/{frame}.PNG",
+        "dash_effect": "assets/sprites/player/dasheffect/{frame}.png"
     },
-    "enemy": "assets/sprites/enemy/{state}/{frame}.PNG"
+    "enemy": "assets/sprites/enemy/{state}/{frame}.PNG",
+    "effects":{
+    "dash_effect": "assets/sprites/player/dasheffect/{frame}.png"
+    }
 }
