@@ -33,8 +33,8 @@ animation_system.load_animations(PLAYER_ANIMATIONS)
 # 初始化实体
 player: Player = Player(pos=Vector2(200, PLAYER_GROUND_Y), size=(50, 80))
 # dash_effect_entity 不再需要，特效将由新的系统处理
-# boss: Boss = Boss(pos=Vector2(800, 585), size=(100, 150))
-entities: list = [player] #, boss]
+boss: Boss = Boss(pos=Vector2(800, 585), size=(100, 150))
+entities: list = [player, boss]
 for entity in entities:
     physics_system.add_entity(entity) 
 
@@ -69,9 +69,9 @@ while running:
     if game_state == GameState.PLAYING:
         keys = pygame.key.get_pressed()
         player.update(keys, animation_system)
-        # boss.update(player.position)
+        boss.update(player.position)
         physics_system.update()
-        # combat_system.update(player, [boss])
+        combat_system.update(player, [boss])
         
         # 更新动画
         animation_system.play_animation(player, player.state)
@@ -79,24 +79,28 @@ while running:
 
         if player.health <= 0:
             game_state = GameState.GAME_OVER
-        # elif boss.health <= 0:
-        #     game_state = GameState.VICTORY
+        elif boss.health <= 0:
+            game_state = GameState.VICTORY
 
     # 绘制
     screen.fill((0, 0, 0))
     
     # 新的绘制逻辑
-    current_frame = animation_system.get_current_frame(player)
-    if current_frame:
-        # Correctly calculate the top-left position for blitting
-        frame_rect = current_frame.get_rect()
-        frame_rect.midbottom = (int(player.position.x), int(player.position.y))
-        screen.blit(current_frame, frame_rect.topleft)
+    # 1. 玩家绘制与闪烁效果
+    if player.invincible_timer > 0 and (pygame.time.get_ticks() // 80) % 2 == 0:
+        # 在无敌期间，每隔80毫秒切换一次显示状态，实现闪烁
+        pass
+    else:
+        current_frame = animation_system.get_current_frame(player)
+        if current_frame:
+            # Correctly calculate the top-left position for blitting
+            frame_rect = current_frame.get_rect()
+            frame_rect.midbottom = (int(player.position.x), int(player.position.y))
+            screen.blit(current_frame, frame_rect.topleft)
     
     if game_state == GameState.PLAYING:
-        # 保留调试用的绿框
-        player.draw(screen, Vector2(0,0))
-        # boss.draw(screen, Vector2(0,0)) # Keep boss rect for now
+        # player.draw(screen, Vector2(0,0)) # 旧的调试绘制
+        boss.draw(screen, Vector2(0,0)) # Keep boss rect for now
         draw_player_health(player)
         # 绘制调试用的攻击框
         if "attack" in player.state:

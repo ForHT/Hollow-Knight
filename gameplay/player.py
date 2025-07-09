@@ -56,7 +56,7 @@ class Player(Entity):
     def set_state(self, new_state: str):
         """设置玩家状态，会检查状态转换是否合法。"""
         # 总是允许从任何状态转换到受伤或死亡
-        if new_state in ["hurt", "dead"]:
+        if new_state in ["damage", "dead"]:
             if self.state != new_state:
                 # print(f"Player state changed to: {new_state}") # For debugging
                 self.state = new_state
@@ -157,14 +157,21 @@ class Player(Entity):
         # 2. 处理输入（会改变状态和位置）
         self.handle_input(keys)
         
-        # 3. 根据状态应用特殊逻辑 (不再需要从动画获取速度)
+        # 3. 水平速度衰减
+        # 这使得我们可以有速度脉冲（如击退），同时又不会无限滑行
+        friction = 0.8
+        self.velocity.x *= friction
+        if abs(self.velocity.x) < 0.1:
+            self.velocity.x = 0
+
+        # 4. 根据状态应用特殊逻辑 (不再需要从动画获取速度)
         if self.state == "dash":
             if self.dash_timer <= 0:
                 self.set_state("idle") # 冲刺结束后回到待机
             else:
                 self.velocity.y = 0 # 冲刺时无重力
         
-        # 4. 处理非输入驱动的状态转换（如落地）
+        # 5. 处理非输入驱动的状态转换（如落地）
         # 检测落地瞬间
         is_landing = self.on_ground and not self.was_on_ground
         if is_landing and self.state in ["jump_loop", "jump_start"]:
@@ -173,8 +180,8 @@ class Player(Entity):
         # 更新上一帧的在的状况
         self.was_on_ground = self.on_ground
 
-        # 5. 受伤状态处理
-        if self.state == "hurt" and self.hurt_timer <= 0:
+        # 6. 受伤状态处理
+        if self.state == "damage" and self.hurt_timer <= 0:
             self.set_state("idle")
 
     def take_damage(self, amount: int):
@@ -182,10 +189,10 @@ class Player(Entity):
             self.health -= amount
             self.invincible_timer = self.invincible_duration_frames
             self.hurt_timer = self.hurt_duration_frames
-            self.set_state("hurt")
-            # 受伤击退现在由dmove处理，这里只设置垂直速度
-            # self.velocity.x = -5 if self.facing_right else 5 
-            self.velocity.y = -10
+            self.set_state("damage")
+            # 恢复C++中的速度脉冲逻辑以实现明显的击退效果
+            self.velocity.x = 5 if self.facing_right else -5 
+            self.velocity.y = -20 # 稍微增强向上的力道以获得更好的手感
             print(f"Player took {amount} damage, health: {self.health}")
             if self.health <= 0:
                 self.set_state("dead")

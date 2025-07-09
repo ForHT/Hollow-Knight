@@ -51,8 +51,8 @@ class PhysicsSystem(IPhysicsSystem):
             entity.velocity.y += entity.acceleration.y
             
             # p = p + v
-            # 只应用垂直速度；水平移动由动画或实体逻辑直接控制
-            entity.position.y += entity.velocity.y
+            # 重新应用水平和垂直速度
+            entity.position += entity.velocity
             
             # 同步hitbox的位置到新的物理位置
             entity.hitbox.midbottom = (int(entity.position.x), int(entity.position.y))
@@ -69,11 +69,10 @@ class PhysicsSystem(IPhysicsSystem):
             # b. 与窗口边界碰撞
             if entity.hitbox.left < self.screen_rect.left:
                 entity.hitbox.left = self.screen_rect.left
-                # 不再干涉速度，只修正位置
-                # entity.velocity.x = 0 
+                entity.velocity.x = 0 
             elif entity.hitbox.right > self.screen_rect.right:
                 entity.hitbox.right = self.screen_rect.right
-                # entity.velocity.x = 0
+                entity.velocity.x = 0
             
             if entity.hitbox.top < self.screen_rect.top:
                 entity.hitbox.top = self.screen_rect.top

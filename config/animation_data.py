@@ -146,20 +146,40 @@ PLAYER_ANIMATIONS = {
             "loop": True,
         }
     },
-     "damage": {
+    "hurt": {
         "left": {
             "path_template": "resource/img/hollow knight/Damage/{}.PNG",
             "frame_count": 6,
             "frame_intervals": [4, 4, 4, 4, 4, 4],
-            "displacements": [(0, 0)] * 6,
+            "displacements": [(-5, -10)] + [(0,0)]*5, # Add knockback on first frame
             "loop": False,
+            "next_state": "idle"
         },
         "right": {
             "path_template": "resource/img/hollow knight/DamageR/{}.PNG",
             "frame_count": 6,
             "frame_intervals": [4, 4, 4, 4, 4, 4],
-            "displacements": [(0, 0)] * 6,
+            "displacements": [(5, -10)] + [(0,0)]*5, # Add knockback on first frame
             "loop": False,
+            "next_state": "idle"
+        }
+    },
+     "damage": {
+        "left": {
+            "path_template": "resource/img/hollow knight/Damage/{}.PNG",
+            "frame_count": 6,
+            "frame_intervals": [4, 4, 4, 4, 4, 4],
+            "displacements": [(0, 0)] * 6, # 击退效果由速度脉冲处理，dmove清零
+            "loop": False,
+            "next_state": "idle"
+        },
+        "right": {
+            "path_template": "resource/img/hollow knight/DamageR/{}.PNG",
+            "frame_count": 6,
+            "frame_intervals": [4, 4, 4, 4, 4, 4],
+            "displacements": [(0, 0)] * 6, # 击退效果由速度脉冲处理，dmove清零
+            "loop": False,
+            "next_state": "idle"
         }
     }
 }
