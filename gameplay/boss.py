@@ -3,7 +3,7 @@ import random
 from typing import Optional
 
 from interfaces import Entity, EntityType, AnimationState, Vector2, Rect
-from config import (
+from configs import (
     BOSS_HEALTH, BOSS_ATTACK_POWER, BOSS_BODY_DAMAGE, ENEMY_GROUND_Y,
     BOSS_ACTION_COOLDOWN, BOSS_WALK_COOLDOWN, BOSS_JUMP_COOLDOWN, 
     BOSS_JUMPDASH_COOLDOWN, BOSS_DASH_COOLDOWN, BOSS_JUMPFINAL_COOLDOWN
@@ -17,9 +17,9 @@ class Boss(Entity):
         self.health = self.max_health
         self.attack_power = BOSS_ATTACK_POWER
         self.body_damage = BOSS_BODY_DAMAGE
-        self.invincible_duration = 0.2 * 60 # Convert to frames
+        self.invincible_duration = 0.2 * 60 # 将秒转换为帧
 
-        # AI State
+        # AI状态
         self.action_cooldown = 0
         self.walk_cooldown = 0
         self.jump_cooldown = 0
@@ -31,14 +31,14 @@ class Boss(Entity):
 
 
     def decide_action(self, player_pos: Vector2):
-        """The core AI logic to decide the next move."""
+        """决定下一步行动的核心AI逻辑。"""
         self.action_cooldown = BOSS_ACTION_COOLDOWN
         
-        # Determine direction towards player
+        # 判断朝向玩家的方向
         player_is_to_the_right = player_pos.x > self.position.x
         self.facing_right = player_is_to_the_right
 
-        # Build a list of available moves
+        # 创建一个可用招式的列表
         available_moves = []
         if self.walk_cooldown <= 0: available_moves.append(self.walk)
         if self.jump_cooldown <= 0: available_moves.append(self.jump)
@@ -47,48 +47,48 @@ class Boss(Entity):
         if self.jumpfinal_cooldown <= 0: available_moves.append(self.jumpfinal)
 
         if not available_moves:
-            self.walk() # Default action if nothing is available
+            self.walk() # 如果没有可用招式，则执行默认行动
             return
 
-        # Choose and execute a random move
+        # 随机选择并执行一个招式
         chosen_move = random.choice(available_moves)
         chosen_move()
 
     def walk(self):
         self.state = AnimationState.B_WALK
         self.walk_cooldown = BOSS_WALK_COOLDOWN
-        self.action_timer = 60 # Walk for 60 frames
+        self.action_timer = 60 # 行走60帧
         
     def jump(self):
         self.state = AnimationState.B_JUMP
         self.jump_cooldown = BOSS_JUMP_COOLDOWN
-        self.velocity.y = -60 # From C++ code
-        self.action_timer = 120 # Approximate duration
+        self.velocity.y = -60 # 来自C++代码
+        self.action_timer = 120 # 大概的持续时间
 
     def dash(self):
         self.state = AnimationState.B_DASH
         self.dash_cooldown = BOSS_DASH_COOLDOWN
-        self.action_timer = 30 # Dash for 30 frames
+        self.action_timer = 30 # 冲刺30帧
 
     def jumpdash(self):
         self.state = AnimationState.B_JUMPDASH
         self.jumpdash_cooldown = BOSS_JUMPDASH_COOLDOWN
-        self.action_timer = 100 # Approximate duration
+        self.action_timer = 100 # 大概的持续时间
 
     def jumpfinal(self):
         self.state = AnimationState.B_JUMPFINAL
         self.jumpfinal_cooldown = BOSS_JUMPFINAL_COOLDOWN
         self.velocity.y = -60
-        self.action_timer = 180 # Approximate duration
+        self.action_timer = 180 # 大概的持续时间
 
     def update(self, player_pos: Vector2):
-        # 0. Check for death
+        # 0. 检查死亡状态
         if self.health <= 0:
             self.state = AnimationState.DEAD
             self.velocity.x = 0
             return
 
-        # 1. Update timers and cooldowns
+        # 1. 更新计时器和冷却时间
         if self.invincible_timer > 0: self.invincible_timer -= 1
         if self.action_cooldown > 0: self.action_cooldown -= 1
         if self.walk_cooldown > 0: self.walk_cooldown -= 1
@@ -98,11 +98,11 @@ class Boss(Entity):
         if self.jumpfinal_cooldown > 0: self.jumpfinal_cooldown -= 1
         if self.action_timer > 0: self.action_timer -= 1
 
-        # 2. AI Decision Making
+        # 2. AI决策
         if self.action_cooldown <= 0 and self.state in [AnimationState.IDLE, AnimationState.B_WALK]:
              self.decide_action(player_pos)
         
-        # 3. Execute state logic
+        # 3. 执行状态逻辑
         if self.state == AnimationState.IDLE:
              self.velocity.x = 0
         elif self.state == AnimationState.B_WALK:
@@ -113,10 +113,29 @@ class Boss(Entity):
             self.velocity.x = 15 if self.facing_right else -15
             if self.action_timer <= 0:
                 self.state = AnimationState.IDLE
-        elif self.state in [AnimationState.B_JUMP, AnimationState.B_JUMPFINAL, AnimationState.B_JUMPDASH]:
-            # Horizontal movement during jumps can be added here
+
+        # --- 攻击状态逻辑 ---
+        elif self.state == AnimationState.B_JUMP:
+            # 简单跳跃，水平移动较少
             if self.on_ground and self.velocity.y == 0:
                 self.state = AnimationState.IDLE
+        elif self.state == AnimationState.B_JUMPDASH:
+            # 一个更复杂的冲刺跳跃，暂时当作普通跳跃处理
+            if self.on_ground and self.velocity.y == 0:
+                self.state = AnimationState.IDLE
+        elif self.state == AnimationState.B_JUMPFINAL:
+            # 追踪跳跃攻击
+            direction_to_player = 1 if player_pos.x > self.position.x else -1
+            # 在C++中，这是由dmove处理的。我们用速度来模拟它。
+            # 攻击的空中部分。
+            if not self.on_ground:
+                 self.velocity.x = 25 * direction_to_player
+            else:
+                 self.velocity.x = 0 # 落地后停止水平移动
+
+            if self.on_ground and self.action_timer < 100: # 假设这是动画的落地部分
+                self.state = AnimationState.IDLE
+
 
     def take_damage(self, amount: int):
         if self.invincible_timer <= 0:

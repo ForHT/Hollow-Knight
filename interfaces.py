@@ -25,12 +25,14 @@ class AnimationState(Enum):
     JUMP = auto()
     FALL = auto()
     ATTACK = auto()
+    ATTACK_UP = auto()
+    ATTACK_DOWN = auto()
     DASH = auto()
     HURT = auto()
     DEAD = auto()
     DAMAGE = auto()
 
-    # Boss-specific states
+    # Boss专属状态
     B_WALK = auto()
     B_JUMP = auto()
     B_DASH =  auto()

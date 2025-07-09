@@ -4,7 +4,7 @@
 """
 import pygame
 from typing import List
-from config import GRAVITY, SCREEN_RECT, FPS
+from configs import GRAVITY, SCREEN_RECT, FPS
 from interfaces import IPhysicsSystem, Entity, Vector2, Rect, AnimationState
 
 class PhysicsSystem(IPhysicsSystem):
