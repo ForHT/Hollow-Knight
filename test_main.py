@@ -114,15 +114,24 @@ while running:
     if game_state == GameState.PLAYING and player and boss:
         keys = pygame.key.get_pressed()
         player.update(keys, animation_system)
-        boss.update(player.position)
+        
+        # Boss的更新现在会返回需要生成的特效
+        effects_from_boss = boss.update(player.position, animation_system)
+
         physics_system.update()
         combat_system.update(player, [boss])
         
         animation_system.play_animation("player", player, player.state)
         animation_system.play_animation("boss", boss, boss.state)
 
-        # 更新动画系统并生成特效
-        effects_to_spawn = animation_system.update(dt)
+        # 更新动画系统并获取动画触发的特效
+        effects_from_anims = animation_system.update(dt)
+
+        # 合并所有需要生成的特效
+        effects_to_spawn = effects_from_anims
+        if effects_from_boss:
+            effects_to_spawn.extend(effects_from_boss)
+            
         for effect_data in effects_to_spawn:
             vfx_manager.create_effect(
                 pos=effect_data["pos"], 

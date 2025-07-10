@@ -1,6 +1,6 @@
 import pygame
 import random
-from typing import Optional
+from typing import Optional, List, Dict
 
 from interfaces import Entity, EntityType, Vector2, Rect
 from configs import (
@@ -9,6 +9,7 @@ from configs import (
     BOSS_JUMPDASH_COOLDOWN, BOSS_DASH_COOLDOWN, BOSS_JUMPFINAL_COOLDOWN,
     BOSS_AI_CLOSE_DISTANCE, BOSS_AI_MEDIUM_DISTANCE
 )
+from core.animation_system import AnimationSystem # 导入
 
 class Boss(Entity):
     def __init__(self, pos: Vector2, size: tuple[int, int]):
@@ -34,6 +35,11 @@ class Boss(Entity):
         self.jumpfinal_cooldown = 0
         self.action_timer = 0
         self.state = "idle"
+        
+        # 新增属性
+        self.is_frozen = False
+        self.was_on_ground = True
+        self.jump_final_type = 'air' # 'air' or 'ground'
 
 
     def decide_action(self, player_pos: Vector2):
@@ -88,12 +94,11 @@ class Boss(Entity):
             # 则从所有可用的招式中选择一个执行，优先选择行走
             if self.walk in available_moves:
                 self.walk()
-            else:
+            elif available_moves:
                 # 如果行走也在CD，就从剩下可用的里面随便选一个
-                if available_moves:
-                    random.choice(available_moves)()
-                else:
-                    self.state = "idle" # 如果真的一个技能都用不了，就待机
+                random.choice(available_moves)()
+            else:
+                self.state = "idle" # 如果真的一个技能都用不了，就待机
 
     def walk(self):
         self.state = "walk"
@@ -114,15 +119,25 @@ class Boss(Entity):
     def jumpdash(self):
         self.state = "jump_dash"
         self.jumpdash_cooldown = BOSS_JUMPDASH_COOLDOWN
+        self.velocity.y = -50 # 给予一个向上的初速度来起跳
         self.action_timer = 100 # 大概的持续时间
 
     def jumpfinal(self):
-        self.state = "jump_final"
+        # 随机选择攻击类型
+        self.jump_final_type = random.choice(['air', 'ground'])
+        if self.jump_final_type == 'air':
+            self.state = "jump_final_air"
+        else:
+            self.state = "jump_final_ground"
+            
         self.jumpfinal_cooldown = BOSS_JUMPFINAL_COOLDOWN
         self.velocity.y = -60
         self.action_timer = 180 # 大概的持续时间
 
-    def update(self, player_pos: Vector2):
+    def update(self, player_pos: Vector2, animation_system: AnimationSystem) -> Optional[List[Dict]]:
+        effects_to_spawn = []
+        self.is_frozen = False # 每帧开始时重置
+
         # 0. 检查死亡状态
         if self.health <= 0:
             self.state = "dead"
@@ -161,22 +176,42 @@ class Boss(Entity):
             if self.on_ground and self.velocity.y == 0:
                 self.state = "idle"
         elif self.state == "jump_dash":
-            # 一个更复杂的冲刺跳跃，暂时当作普通跳跃处理
-            if self.on_ground and self.velocity.y == 0:
-                self.state = "idle"
-        elif self.state == "jump_final":
-            # 追踪跳跃攻击
-            direction_to_player = 1 if player_pos.x > self.position.x else -1
-            # 在C++中，这是由dmove处理的。我们用速度来模拟它。
-            # 攻击的空中部分。
+            # 空中突刺逻辑：在空中时，向面朝方向快速移动
             if not self.on_ground:
-                 self.velocity.x = 25 * direction_to_player
-            else:
-                 self.velocity.x = 0 # 落地后停止水平移动
-
-            if self.on_ground and self.action_timer < 100: # 假设这是动画的落地部分
+                dash_speed = 30
+                self.velocity.x = dash_speed if self.facing_right else -dash_speed
+            # 落地后结束
+            elif self.on_ground and self.velocity.y == 0:
+                self.velocity.x = 0
                 self.state = "idle"
+        elif self.state == "jump_final_air":
+            # 空中攻击逻辑
+            anim_state = animation_system.entity_states.get(self)
+            if anim_state and anim_state.current_frame >= 7:
+                self.is_frozen = True
+            
+            if self.on_ground and self.action_timer < 10: # 动画快结束时落地
+                 self.state = "idle"
 
+        elif self.state == "jump_final_ground":
+            # 落地攻击逻辑
+            is_landing = self.on_ground and not self.was_on_ground
+            if is_landing:
+                self.is_frozen = True
+                # 手动生成攻击特效
+                effects_to_spawn.append({
+                    "name": "boss_jump_final_effect",
+                    "pos": Vector2(self.hitbox.center) + Vector2(0, 25),
+                    "facing_right": self.facing_right
+                })
+            
+            if self.on_ground and self.action_timer < 10:
+                self.state = "idle"
+        
+        # 更新上一帧的在的状况
+        self.was_on_ground = self.on_ground
+        
+        return effects_to_spawn
 
     def take_damage(self, amount: int):
         if self.invincible_timer <= 0:

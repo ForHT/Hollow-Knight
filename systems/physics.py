@@ -37,6 +37,13 @@ class PhysicsSystem(IPhysicsSystem):
         为所有注册的实体更新一帧的物理状态 (per-frame update).
         """
         for entity in self.entities:
+            # 新增：检查实体是否处于“冻结”状态
+            if hasattr(entity, 'is_frozen') and entity.is_frozen:
+                entity.velocity = Vector2(0, 0)
+                # 我们还需要重置加速度，以防止任何残留的力（如重力）被应用
+                entity.acceleration = Vector2(0, 0)
+                continue # 跳过该实体的所有其他物理计算
+
             # 冲刺和死亡状态下不受重力影响
             is_physics_active = entity.state not in ["dash", "dead"]
 
