@@ -91,24 +91,24 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         
-        # 响应任意按键开始游戏
-        if event.type == pygame.KEYDOWN:
-            if game_state == GameState.START_SCREEN:
+        if game_state == GameState.START_SCREEN:
+            # 响应任意按键开始游戏
+            if event.type == pygame.KEYDOWN:
                 reset_game()
                 game_state = GameState.PLAYING
-
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            # if game_state == GameState.START_SCREEN:
-            #     # 使用隐形的Rect进行点击检测
-            #     if start_button_rect.collidepoint(event.pos):
-            #         reset_game()
-            #         game_state = GameState.PLAYING
-            if game_state in [GameState.GAME_OVER, GameState.VICTORY]:
-                if ui_manager.is_restart_clicked(event.pos):
-                    reset_game()
-                    game_state = GameState.PLAYING
-                # if quit_button.is_clicked(event.pos):
-                #     running = False
+        elif game_state in [GameState.GAME_OVER, GameState.VICTORY]:
+            # 在结束界面，将事件交给UI管理器处理
+            action = ui_manager.handle_event(event)
+            if action == "restart":
+                reset_game()
+                game_state = GameState.PLAYING
+            elif action == "quit":
+                running = False
+        else:
+             # 游戏进行中的事件处理
+            if event.type == pygame.KEYDOWN:
+                # 这里可以处理游戏中的暂停等事件（如果需要）
+                pass
 
     # --- 逻辑更新 ---
     if game_state == GameState.PLAYING and player and boss:
