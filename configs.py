@@ -22,12 +22,11 @@ GRAVITY = 2.5
 
 # 玩家在地面上时，其hitbox.bottom所在的Y坐标
 # 对应C++代码中的: if (player.position.y > 680)
-PLAYER_GROUND_Y = 680
+PLAYER_GROUND_Y = 820
 
 # Boss在地面上时，其hitbox.bottom所在的Y坐标
 # C++代码中的值为585，但为了统一，这里也使用和玩家一样的高度
-ENEMY_GROUND_Y = 680
-
+ENEMY_GROUND_Y = 840
 
 # ==============================================================================
 # >> 玩家属性 (Player Attributes)

@@ -90,7 +90,10 @@ class Boss(Entity):
                 self.walk()
             else:
                 # 如果行走也在CD，就从剩下可用的里面随便选一个
-                random.choice(available_moves)()
+                if available_moves:
+                    random.choice(available_moves)()
+                else:
+                    self.state = "idle" # 如果真的一个技能都用不了，就待机
 
     def walk(self):
         self.state = "walk"
