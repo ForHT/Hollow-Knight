@@ -8,7 +8,7 @@ from configs import (
     PLAYER_RUN_SPEED
 )
 from config.animation_data import PLAYER_ANIMATIONS
-# from config.states import PLAYER_STATE_MACHINE # We will create a new one based on animation data
+from core.audio_manager import AudioManager
 
 # A more dynamic state machine can be built from the animation data keys
 PLAYER_STATE_MACHINE = {
@@ -18,13 +18,14 @@ PLAYER_STATE_MACHINE = {
 
 
 class Player(Entity):
-    def __init__(self, pos: Vector2, size: tuple[int, int]):
+    def __init__(self, pos: Vector2, size: tuple[int, int], audio_manager: AudioManager):
         super().__init__(
             pos=pos, 
             size=size, 
             ground_y=PLAYER_GROUND_Y, 
             entity_type=EntityType.PLAYER
         )
+        self.audio_manager = audio_manager
         
         self.state = "idle" # 初始状态
         
@@ -135,32 +136,38 @@ class Player(Entity):
                     self.set_state("idle")
 
     def jump(self):
+        # TODO: C++里有专门的跳跃音效，但这里没有，暂时留空
         self.velocity.y = self.jump_velocity_val
         self.on_ground = False
         self.set_state("jump_start")
 
     def attack1(self):
         self.set_state("attack1")
+        self.audio_manager.play_sound("attack1")
         self.attack_cooldown = self.attack_cooldown_max
         self.attack_combo_window_timer = 0 # 重置连击窗口
 
     def attack2(self):
         self.set_state("attack2")
+        self.audio_manager.play_sound("attack2")
         self.attack_cooldown = self.attack_cooldown_max
         self.attack_combo_window_timer = 0 # 消耗连击窗口
 
     def attack_up(self):
         self.set_state("attack_up")
+        self.audio_manager.play_sound("attack_up")
         self.attack_cooldown = self.attack_cooldown_max
 
     def attack_down(self):
         self.set_state("attack_down")
+        self.audio_manager.play_sound("attack1") # C++中下劈用的是普通攻击音效
         self.attack_cooldown = self.attack_cooldown_max
 
     def pogo_bounce(self):
         self.velocity.y = self.jump_velocity_val * 0.9
 
     def dash(self):
+        # TODO: C++里有专门的冲刺音效，但这里没有，暂时留空
         self.set_state("dash")
         self.dash_timer = self.dash_duration
         self.dash_cooldown = self.dash_cooldown_max
@@ -216,6 +223,7 @@ class Player(Entity):
         
     def take_damage(self, amount: int):
         if self.invincible_timer <= 0:
+            self.audio_manager.play_sound("player_damage")
             self.health -= amount
             self.invincible_timer = self.invincible_duration_frames
             self.hurt_timer = self.hurt_duration_frames

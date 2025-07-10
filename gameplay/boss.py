@@ -9,16 +9,18 @@ from configs import (
     BOSS_JUMPDASH_COOLDOWN, BOSS_DASH_COOLDOWN, BOSS_JUMPFINAL_COOLDOWN,
     BOSS_AI_CLOSE_DISTANCE, BOSS_AI_MEDIUM_DISTANCE
 )
-from core.animation_system import AnimationSystem # 导入
+from core.animation_system import AnimationSystem
+from core.audio_manager import AudioManager
 
 class Boss(Entity):
-    def __init__(self, pos: Vector2, size: tuple[int, int]):
+    def __init__(self, pos: Vector2, size: tuple[int, int], audio_manager: AudioManager):
         super().__init__(
             pos=pos, 
             size=size, 
             ground_y=ENEMY_GROUND_Y,
             entity_type=EntityType.BOSS
         )
+        self.audio_manager = audio_manager
         
         self.max_health = BOSS_HEALTH
         self.health = self.max_health
@@ -107,17 +109,20 @@ class Boss(Entity):
         
     def jump(self):
         self.state = "jump"
+        self.audio_manager.play_boss_random_vocal()
         self.jump_cooldown = BOSS_JUMP_COOLDOWN
         self.velocity.y = -60 # 来自C++代码
         self.action_timer = 120 # 大概的持续时间
 
     def dash(self):
         self.state = "dash"
+        self.audio_manager.play_boss_random_vocal()
         self.dash_cooldown = BOSS_DASH_COOLDOWN
         self.action_timer = 30 # 冲刺30帧
 
     def jumpdash(self):
         self.state = "jump_dash"
+        self.audio_manager.play_boss_random_vocal()
         self.jumpdash_cooldown = BOSS_JUMPDASH_COOLDOWN
         self.velocity.y = -50 # 给予一个向上的初速度来起跳
         self.action_timer = 100 # 大概的持续时间
@@ -130,6 +135,7 @@ class Boss(Entity):
         else:
             self.state = "jump_final_ground"
             
+        self.audio_manager.play_boss_random_vocal()
         self.jumpfinal_cooldown = BOSS_JUMPFINAL_COOLDOWN
         self.velocity.y = -60
         self.action_timer = 180 # 大概的持续时间
@@ -216,6 +222,7 @@ class Boss(Entity):
     def take_damage(self, amount: int):
         if self.invincible_timer <= 0:
             self.health -= amount
+            self.audio_manager.play_sound("boss_hurt")
             self.invincible_timer = self.invincible_duration
             print(f"Boss took {amount} damage, health: {self.health}")
 
