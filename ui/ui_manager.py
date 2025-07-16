@@ -190,12 +190,12 @@ class UIManager:
 
     def _draw_game_over_screen(self, surface: pygame.Surface):
         """绘制游戏结束界面"""
-        game_over_text = self.font_title.render("你已死亡", True, (200, 20, 20))
+        game_over_text = self.font_title.render("You are defeated", True, (200, 20, 20))
         text_rect = game_over_text.get_rect(center=(surface.get_width() / 2, surface.get_height() / 2 - 100))
         surface.blit(game_over_text, text_rect)
         
         # 添加 "是否重玩？" 提示
-        prompt_text = self.font_button.render("是否重玩？", True, (255, 255, 255))
+        prompt_text = self.font_button.render("Retry?", True, (255, 255, 255))
         prompt_rect = prompt_text.get_rect(center=(surface.get_width() / 2, surface.get_height() / 2 + 20))
         surface.blit(prompt_text, prompt_rect)
 
@@ -205,12 +205,12 @@ class UIManager:
 
     def _draw_victory_screen(self, surface: pygame.Surface):
         """绘制胜利界面"""
-        victory_text = self.font_title.render("胜 利", True, (255, 215, 0))
+        victory_text = self.font_title.render("Victory", True, (255, 215, 0))
         text_rect = victory_text.get_rect(center=(surface.get_width() / 2, surface.get_height() / 2 - 100))
         surface.blit(victory_text, text_rect)
 
         # 添加 "是否重玩？" 提示
-        prompt_text = self.font_button.render("是否重玩？", True, (255, 255, 255))
+        prompt_text = self.font_button.render("Retry?", True, (255, 255, 255))
         prompt_rect = prompt_text.get_rect(center=(surface.get_width() / 2, surface.get_height() / 2 + 20))
         surface.blit(prompt_text, prompt_rect)
 
@@ -231,7 +231,7 @@ class UIManager:
         restart_button_x = int(SCREEN_WIDTH / 2 - button_width - 30)
         self.restart_button = Button(
             (restart_button_x, button_y, button_width, button_height),
-            "是",
+            "Yes",
             self.font_button
         )
 
@@ -239,6 +239,6 @@ class UIManager:
         quit_button_x = int(SCREEN_WIDTH / 2 + 30)
         self.quit_button = Button(
             (quit_button_x, button_y, button_width, button_height),
-            "否",
+            "No",
             self.font_button
         ) 
